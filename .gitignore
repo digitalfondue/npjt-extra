@@ -1,0 +1,15 @@
+/target/
+.classpath
+.project
+.settings/
+.idea/
+.gradle/
+build/
+*.iml
+*.ipr
+*.iws
+/build/
+.gradle/
+deploy*.sh
+custom.jvmargs
+classes/
