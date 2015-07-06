@@ -40,9 +40,9 @@ npjt-extra is composed of 3 parts:
 
 ### RowMapping definition
 
-For mapping a row to class, npjt-extra require the following restriction:
+For mapping a row to a class, npjt-extra require the following restriction:
 
- - the class must have only **one public constructor**.
+ - the class must have only **one public constructor** (this restriction could be lifted off).
  - each of the constructor argument must have a @Column annotation that map the column name to the parameter.
 
 This constructor approach is for promoting an immutable model. 
