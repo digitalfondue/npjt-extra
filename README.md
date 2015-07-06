@@ -7,10 +7,6 @@ A small layer over Spring's NamedParameterJdbcTemplate
 
 ## Download
 
-(TBD)
-
-## Use
-
 ### Maven
 
 ```xml
@@ -27,6 +23,9 @@ A small layer over Spring's NamedParameterJdbcTemplate
 compile "ch.digitalfondue.npjt-extra:npjt-extra:1.0.1"
 ```
 
+## Use and examples
+
+(TBD)
 
 ## License
 
