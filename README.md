@@ -173,6 +173,7 @@ version.
 You can add default methods too, for example, if you need some custom query directly with
 the NamedParameterJdbcTemplate:
 
+```java
 public interface MySimpleQueries {
 
   
@@ -188,7 +189,7 @@ public interface MySimpleQueries {
 			.queryForObject("SELECT CONF_VALUE FROM LA_CONF WHERE CONF_KEY = :key", Collections.singletonMap("key", key), String.class);
   }
 }
-
+```
 
 
 ### Configuration
