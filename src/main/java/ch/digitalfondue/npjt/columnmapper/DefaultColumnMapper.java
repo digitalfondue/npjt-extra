@@ -21,6 +21,7 @@ import java.sql.SQLException;
 
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
+import org.springframework.jdbc.support.JdbcUtils;
 
 import ch.digitalfondue.npjt.columnmapper.ColumnMapperFactory.AbstractColumnMapperFactory;
 
@@ -37,7 +38,8 @@ public class DefaultColumnMapper extends ColumnMapper {
 				return clob.clob.getSubString(1, (int) clob.clob.length());
 			}
 		} else {
-			return res;
+			int columnIdx = rs.findColumn(name);
+			return JdbcUtils.getResultSetValue(rs, columnIdx, paramType);
 		}
 	}
 

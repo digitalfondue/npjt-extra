@@ -44,7 +44,8 @@ public class DefaultColumnMapperTest {
 	@Test
 	public void testString() throws SQLException {
 		DefaultColumnMapper m = new DefaultColumnMapper("PARAM", String.class);
-		when(resultSet.getObject("PARAM")).thenReturn("MY_VALUE");
+		when(resultSet.findColumn("PARAM")).thenReturn(1);
+		when(resultSet.getString(1)).thenReturn("MY_VALUE");
 		Assert.assertEquals("MY_VALUE", m.getObject(resultSet));
 	}
 	
