@@ -165,7 +165,7 @@ If you use java8, you can wrap the returned object in a Optional. For example:
 Optional<Conf> findByKey(@Bind("key") String key);
 ```
 
-Will work. If the query return more than one object it will launch an exception like the unwrapped
+Will work as expected. If the query return more than one object it will launch an exception like the unwrapped
 version.
 
 ##### Default methods in the interface
@@ -194,7 +194,67 @@ public interface MySimpleQueries {
 
 ### Configuration
 
-[TODO: TBD]
+npjt-extra require that you configure the ch.digitalfondue.npjt.QueryFactory, then you can 
+
+ - instantiate manually the various query repositories with ch.digitalfondue.npjt.QueryFactory.from(final Class<T> clazz);
+ - scan the package(s) with ch.digitalfondue.npjt.QueryRepositoryScanner
+ 
+#### Manual instantiation
+
+Using the JavaConfig:
+
+```java
+
+public class MyConfig {
+
+
+  /** the db type could be another parameter :) */
+  @Bean
+  public QueryFactory queryFactory(DataSource dataSource) {
+    return new QueryFactory("hsqldb", dataSource);
+  }
+  
+  
+  /** instantiate the interface MySimpleQueries */
+  @Bean
+  public MySimpleQueries getMySimpleQueries(QueryFactory queryFactory) {
+    return queryFactory.from(MySimpleQueries.class);
+  }
+  
+}
+
+```
+
+#### Using the QueryRepositoryScanner
+
+First you need to annotate your query repository with the ch.digitalfondue.npjt.QueryRepository annotation.
+
+Then you only need to configure the packages to scan:
+
+```java
+
+public class MyConfig2 {
+
+
+  /** the db type could be another parameter :) */
+  @Bean
+  public QueryFactory queryFactory(DataSource dataSource) {
+    return new QueryFactory("hsqldb", dataSource);
+  }
+  
+  
+  /** scan the packages "ch.digitalfondue.npjt.query" and "ch.digitalfondue.npjt.columnmapper" */
+  @Bean
+  public QueryRepositoryScanner getScanner(QueryFactory queryFactory) {
+    return new QueryRepositoryScanner(queryFactory, 
+      "ch.digitalfondue.npjt.query",
+      "ch.digitalfondue.npjt.columnmapper");
+  }
+}
+
+```
+
+All the annotated interfaces will be available in your spring context.
 
 ## Javadoc
 
