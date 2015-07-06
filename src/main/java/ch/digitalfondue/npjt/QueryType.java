@@ -117,7 +117,7 @@ public enum QueryType {
 			boolean isReturnOptional = isReturnOptional(method);
 			if (method.getReturnType().isAssignableFrom(List.class) || isReturnOptional) {
 				Class<Object> c = extractGenericMethod(method);
-				HasRowmapper r = ensurePresence(c, columnMapperFactories);
+				HasRowmapper r = getRowMapper(c, columnMapperFactories);
 				
 				List<Object> res = handleList(template, jdbc, parameters, columnMapperFactories, c, r);
 				if(isReturnOptional) {
@@ -127,36 +127,40 @@ public enum QueryType {
 				}
 			} else {
 				Class<Object> c = (Class<Object>) method.getReturnType();
-				HasRowmapper r = ensurePresence(c, columnMapperFactories);
+				HasRowmapper r = getRowMapper(c, columnMapperFactories);
 				return handleSingleObject(template, jdbc, parameters, columnMapperFactories, c, r);
 			}
 		}
 
-
-		private Object handleSingleObject(String template,
-				NamedParameterJdbcTemplate jdbc, SqlParameterSource parameters,
-				Collection<ColumnMapperFactory> columnMapperFactories,
-				Class<Object> c, HasRowmapper r) {
-			if (r.present) {
-				return jdbc.queryForObject(template, parameters, r.rowMapper);
-			} else {
-				RowMapper<Object> rowMapper = matchToOutput(columnMapperFactories, c);
-				if(rowMapper != null) {
-					return jdbc.queryForObject(template, parameters, rowMapper);
-				} else {
-					return jdbc.queryForObject(template, parameters, c);
-				}
-				
-			}
-		}
-
-		private HasRowmapper ensurePresence(Class<Object> c, Collection<ColumnMapperFactory> columnMapperFactories) {
+		private HasRowmapper getRowMapper(Class<Object> c, Collection<ColumnMapperFactory> columnMapperFactories) {
 			if (!cachedClassToMapper.containsKey(c)) {
 				cachedClassToMapper.put(c, handleClass(c, columnMapperFactories));
 			}
 			return cachedClassToMapper.get(c);
 		}
 	};
+	
+	abstract Object apply(String template, NamedParameterJdbcTemplate jdbc,
+			Method method, Object[] args, 
+			Collection<ColumnMapperFactory> columnMapperFactories,
+			Collection<ParameterConverter> parameterConverters);
+	
+	private static Object handleSingleObject(String template,
+			NamedParameterJdbcTemplate jdbc, SqlParameterSource parameters,
+			Collection<ColumnMapperFactory> columnMapperFactories,
+			Class<Object> c, HasRowmapper r) {
+		if (r.present) {
+			return jdbc.queryForObject(template, parameters, r.rowMapper);
+		} else {
+			RowMapper<Object> rowMapper = matchToOutput(columnMapperFactories, c);
+			if(rowMapper != null) {
+				return jdbc.queryForObject(template, parameters, rowMapper);
+			} else {
+				return jdbc.queryForObject(template, parameters, c);
+			}
+			
+		}
+	}
 	
 	@SuppressWarnings("unchecked")
 	private static Class<Object> extractGenericMethod(Method method) {
@@ -218,11 +222,18 @@ public enum QueryType {
 	private enum JdbcAction {
 		QUERY, UPDATE, INSERT_W_AUTO_GENERATED_KEY
 	}
+	
+	private static class HasRowmapper {
+		private final boolean present;
+		private final RowMapper<Object> rowMapper;
 
-	abstract Object apply(String template, NamedParameterJdbcTemplate jdbc,
-			Method method, Object[] args, 
-			Collection<ColumnMapperFactory> columnMapperFactories,
-			Collection<ParameterConverter> parameterConverters);
+		HasRowmapper(boolean present, RowMapper<Object> rowMapper) {
+			this.present = present;
+			this.rowMapper = rowMapper;
+		}
+	}
+
+	
 
 	private static HasRowmapper handleClass(Class<Object> c, Collection<ColumnMapperFactory> columnMapperFactories) {
 		if (ConstructorAnnotationRowMapper.hasConstructorInTheCorrectForm(c)) {
@@ -257,9 +268,7 @@ public enum QueryType {
 				}
 				
 				if (!hasAccepted) {
-					throw new IllegalStateException(
-							"Was not able to find a ParameterConverter able to process object: "
-									+ arg + " with class " + parameterType);
+					throw new IllegalStateException("Was not able to find a ParameterConverter able to process object: " + arg + " with class " + parameterType);
 				}
 			}
 		}
@@ -281,15 +290,7 @@ public enum QueryType {
 		return null;
 	}
 
-	private static class HasRowmapper {
-		private final boolean present;
-		private final RowMapper<Object> rowMapper;
-
-		HasRowmapper(boolean present, RowMapper<Object> rowMapper) {
-			this.present = present;
-			this.rowMapper = rowMapper;
-		}
-	}
+	
 	
 	@SuppressWarnings("unchecked")
 	private static <T> AffectedRowCountAndKey<T> executeUpdateAndKeepKeys(
