@@ -256,9 +256,13 @@ public class MyConfig2 {
 
 All the annotated interfaces will be available in your spring context.
 
+### Custom data type mapping
+
+[TODO]
+
 ## Javadoc
 
-[TODO: TBD]
+[TODO]
 
 ## License
 
