@@ -11,7 +11,22 @@ A small layer over Spring's NamedParameterJdbcTemplate
 
 ## Use
 
-(TBD)
+### Maven
+
+```xml
+<dependency>
+	<groupId>ch.digitalfondue.npjt-extra</groupId>
+	<artifactId>npjt-extra</artifactId>
+	<version>1.0.1</version>
+</dependency>
+```
+
+### Gradle
+
+```
+compile "ch.digitalfondue.npjt-extra:npjt-extra:1.0.1"
+```
+
 
 ## License
 
