@@ -104,19 +104,53 @@ public interface MySimpleQueries {
   /** It will map multiple values too */
   @Query("SELECT * FROM LA_CONF")
   List<Conf> findAll();
-
+  
+  
   /** You can search "simple" types too if they are supported by spring jdbc */
+  @Query("SELECT CONF_VALUE FROM LA_CONF WHERE CONF_KEY = 'BLA'")
+  String findBla();
+
+  /** You can search Lists of "simple" types too if they are supported by spring jdbc */
   @Query("SELECT CONF_KEY FROM LA_CONF")
   List<String> findAllKeys();
+
 }
  
 ```
 
 #### Query override
 
-TBD
+If you want to support multiple DB which have some slightly different syntax you can override a query:
+
+For example:
+
+```java
+
+import ch.digitalfondue.npjt.Query;
+import ch.digitalfondue.npjt.QueryOverride;
+import ch.digitalfondue.npjt.QueriesOverride;
+
+public interface QueryTest {
+  @Query(type = QueryType.TEMPLATE, value = "SELECT * FROM LA_CONF")
+  @QueriesOverride({
+  	@QueryOverride(db = "MYSQL", value = "SELECT * FROM LA_CONF_MYSQL"),
+  	@QueryOverride(db = "PGSQL", value = "SELECT * FROM LA_CONF_PGSQL")
+  })
+  List<Conf> findAll();
+}
+```
+
+When creating the ch.digitalfondue.npjt.QueryFactory that will generate the repositories, you must specify
+2 parameters: first the **DB** name and second the DataSource.
+
+
+If the db name match the db parameter specified in a @QueryOverride, the associated String value will be used.
 
 #### Fetch generated keys
+
+TBD
+
+#### Query templates
 
 TBD
 
@@ -126,7 +160,7 @@ TBD
 
 If you use java8, you can wrap the returned object in a Optional. For example:
 
-```
+```java
 @Query("SELECT * FROM LA_CONF WHERE CONF_KEY = :key")
 Optional<Conf> findByKey(@Bind("key") String key);
 ```
