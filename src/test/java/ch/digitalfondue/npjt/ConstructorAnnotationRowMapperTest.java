@@ -34,6 +34,7 @@ package ch.digitalfondue.npjt;
 import java.util.Collections;
 import java.util.List;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 import ch.digitalfondue.npjt.ConstructorAnnotationRowMapper;
@@ -64,6 +65,21 @@ public class ConstructorAnnotationRowMapperTest {
 	public void testNoMatchingColumnMapperFactory() {
 		new ConstructorAnnotationRowMapper<>(Mapping.class, Collections.<ColumnMapperFactory>emptyList());
 	}
+	
+	@Test
+	public void testsMoreThanOnePublicConstructorForm() {
+		Assert.assertFalse(ConstructorAnnotationRowMapper.hasConstructorInTheCorrectForm(MultiplePublicConstructor.class));
+	}
+	
+	@Test
+	public void testMissingColumnAnnotationForm() {
+		Assert.assertFalse(ConstructorAnnotationRowMapper.hasConstructorInTheCorrectForm(MissingColumn.class));
+	}
+	
+	@Test
+	public void testZeroArgConstructorForm() {
+		Assert.assertFalse(ConstructorAnnotationRowMapper.hasConstructorInTheCorrectForm(ZeroArgConstructor.class));
+	}
 
 		
 	public static class Mapping {
@@ -71,6 +87,12 @@ public class ConstructorAnnotationRowMapperTest {
 		}
 	}
 
+	public static class ZeroArgConstructor {
+		
+		public ZeroArgConstructor() {
+		}
+		
+	}
 	
 	public static class MultiplePublicConstructor {
 		public MultiplePublicConstructor() {

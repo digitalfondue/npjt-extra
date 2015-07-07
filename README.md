@@ -34,8 +34,8 @@ compile "ch.digitalfondue.npjt-extra:npjt-extra:1.0.2"
 
 npjt-extra is composed of 3 parts: 
 
- - an annotation based driven RowMapper
- - the interface based query repository definition
+ - an annotation based RowMapper
+ - an interface based query repository
  - the configuration classes
 
 ### RowMapping definition
@@ -266,4 +266,4 @@ All the annotated interfaces will be available in your spring context.
 
 ## License
 
-The library is under the The Apache Software License, Version 2.0
+The library is under The Apache Software License, Version 2.0
