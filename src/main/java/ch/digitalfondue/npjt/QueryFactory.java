@@ -30,7 +30,6 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
 
-import ch.digitalfondue.npjt.columnmapper.BooleanColumnMapper;
 import ch.digitalfondue.npjt.columnmapper.ColumnMapperFactory;
 import ch.digitalfondue.npjt.columnmapper.DefaultColumnMapper;
 import ch.digitalfondue.npjt.columnmapper.EnumColumnMapper;
@@ -62,7 +61,6 @@ public class QueryFactory {
 	
 	//default mappers and converters
 	{
-		columnMapperFactories.add(new BooleanColumnMapper.BooleanColumnMapperFactory());
 		columnMapperFactories.add(new EnumColumnMapper.EnumColumnMapperFactory());
 		columnMapperFactories.add(new DefaultColumnMapper.DefaultColumnMapperFactory());
 		

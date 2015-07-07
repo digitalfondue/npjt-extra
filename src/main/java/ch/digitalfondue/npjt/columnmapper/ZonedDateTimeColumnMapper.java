@@ -59,7 +59,7 @@ public class ZonedDateTimeColumnMapper extends ColumnMapper {
 
 		@Override
 		public int order() {
-			return Integer.MAX_VALUE -3;
+			return Integer.MAX_VALUE -2;
 		}
 
 		@Override

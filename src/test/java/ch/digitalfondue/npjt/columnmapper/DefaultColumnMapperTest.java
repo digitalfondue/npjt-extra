@@ -15,9 +15,8 @@
  */
 package ch.digitalfondue.npjt.columnmapper;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
 
-import java.sql.Clob;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
@@ -26,8 +25,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-
-import ch.digitalfondue.npjt.columnmapper.DefaultColumnMapper;
 
 @RunWith(MockitoJUnitRunner.class)
 public class DefaultColumnMapperTest {
@@ -48,53 +45,4 @@ public class DefaultColumnMapperTest {
 		when(resultSet.getString(1)).thenReturn("MY_VALUE");
 		Assert.assertEquals("MY_VALUE", m.getObject(resultSet));
 	}
-	
-	@Test
-	public void testClobHandling() throws SQLException {
-		DefaultColumnMapper m = new DefaultColumnMapper("PARAM", String.class);
-		
-		Clob clob = mock(Clob.class);
-		
-		String clobValue = "MY_VALUE";
-		when(clob.length()).thenReturn((long) clobValue.length());
-		when(clob.getSubString(1, clobValue.length())).thenReturn(clobValue);
-		
-		when(resultSet.getObject("PARAM")).thenReturn(clob);
-		
-		Assert.assertEquals("MY_VALUE", m.getObject(resultSet));
-		
-		verify(clob).free();
-	}
-	
-	@Test(expected = SQLException.class)
-	public void testExceptionOnClose() throws SQLException {
-		DefaultColumnMapper m = new DefaultColumnMapper("PARAM", String.class);
-		Clob clob = mock(Clob.class);
-		String clobValue = "MY_VALUE";
-		when(clob.length()).thenReturn((long) clobValue.length());
-		when(clob.getSubString(1, clobValue.length())).thenReturn(clobValue);
-		
-		when(resultSet.getObject("PARAM")).thenReturn(clob);
-		
-		doThrow(SQLException.class).when(clob).free();
-		
-		m.getObject(resultSet);
-		
-	}
-	
-	@Test(expected = SQLException.class)
-	public void testExceptionOnGetSubString() throws SQLException {
-		DefaultColumnMapper m = new DefaultColumnMapper("PARAM", String.class);
-		Clob clob = mock(Clob.class);
-		String clobValue = "MY_VALUE";
-		when(clob.length()).thenReturn((long) clobValue.length());
-		when(clob.getSubString(1, clobValue.length())).thenThrow(new SQLException());
-		
-		when(resultSet.getObject("PARAM")).thenReturn(clob);
-		
-		
-		m.getObject(resultSet);
-		
-	}
-
 }

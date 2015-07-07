@@ -15,7 +15,6 @@
  */
 package ch.digitalfondue.npjt.columnmapper;
 
-import java.sql.Clob;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
@@ -32,31 +31,11 @@ public class DefaultColumnMapper extends ColumnMapper {
 	}
 
 	public Object getObject(ResultSet rs) throws SQLException {
-		Object res = rs.getObject(name);
-		if (res != null && Clob.class.isAssignableFrom(res.getClass())) {
-			try (ClobAutoCloseable clob = new ClobAutoCloseable((Clob) res)) {
-				return clob.clob.getSubString(1, (int) clob.clob.length());
-			}
-		} else {
-			int columnIdx = rs.findColumn(name);
-			return JdbcUtils.getResultSetValue(rs, columnIdx, paramType);
-		}
+		int columnIdx = rs.findColumn(name);
+		return JdbcUtils.getResultSetValue(rs, columnIdx, paramType);
 	}
 
-	private static class ClobAutoCloseable implements AutoCloseable {
-
-		private final Clob clob;
-
-		public ClobAutoCloseable(Clob clob) {
-			this.clob = clob;
-		}
-
-		@Override
-		public void close() throws SQLException {
-			clob.free();
-		}
-	}
-	
+		
 	public static class DefaultColumnMapperFactory extends AbstractColumnMapperFactory {
 
 		@Override

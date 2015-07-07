@@ -52,7 +52,7 @@ public class EnumColumnMapper extends ColumnMapper {
 
 		@Override
 		public int order() {
-			return Integer.MAX_VALUE - 2;
+			return Integer.MAX_VALUE - 1;
 		}
 
 		@Override
