@@ -131,7 +131,7 @@ import ch.digitalfondue.npjt.QueryOverride;
 import ch.digitalfondue.npjt.QueriesOverride;
 
 public interface QueryTest {
-  @Query(type = QueryType.TEMPLATE, value = "SELECT * FROM LA_CONF")
+  @Query("SELECT * FROM LA_CONF")
   @QueriesOverride({
   	@QueryOverride(db = "MYSQL", value = "SELECT * FROM LA_CONF_MYSQL"),
   	@QueryOverride(db = "PGSQL", value = "SELECT * FROM LA_CONF_PGSQL")
@@ -152,7 +152,26 @@ TBD
 
 #### Query templates
 
-TBD
+If you only require to generate a query string which depend from the db type, you can define a query template.
+
+You need to define the type in the @Query annotation to QueryType.TEMPLATE and the return type of the query as String.
+
+For example:
+
+```java
+
+public interface QueryTest {
+
+  @Query(type = QueryType.TEMPLATE, value = "MY_TEMPLATE")
+  @QueriesOverride({
+  	@QueryOverride(db = "MYSQL", value = "SELECT * FROM MY_TEMPLATE_MYSQL"),
+  	@QueryOverride(db = "PGSQL", value = "SELECT * FROM MY_TEMPLATE_PGSQL")
+  })
+  String template();
+}
+```
+
+Calling template() will return "MY_TEMPLATE" (or the overridden values).
 
 #### Java 8 support
 
@@ -190,6 +209,17 @@ public interface MySimpleQueries {
   }
 }
 ```
+
+##### LocalDate, LocalDateTime, Instant support
+
+npjt-extra support out of the box LocalDate, LocalDateTime and Instant both as a parameter of a interface method and as a mapped value.
+
+If you don't need the support, you can remove them calling `QueryFactory.removeColumnMapperFactory` and `QueryFactory.removeParameterConverter`
+with the following classes:
+
+ - LocalDate: `LocalDateMapper.Factory.class` and `LocalDateMapper.Parameter.class`
+ - LocalDateTime: `LocalDateTimeMapper.Factory.class` and `LocalDateTimeMapper.Parameter.class`
+ - Instant: `InstantMapper.Factory.class` and `InstantMapper.Parameter.class`
 
 
 ### Configuration
