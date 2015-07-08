@@ -49,7 +49,7 @@ public class EnumMapper extends ColumnMapper {
 	public static class Converter extends AbstractParameterConverter {
 
 		@Override
-		public boolean accept(Object arg, Class<?> parameterType) {
+		public boolean accept(Class<?> parameterType) {
 			return parameterType.isEnum();
 		}
 

@@ -260,7 +260,7 @@ public enum QueryType {
 				
 				boolean hasAccepted = false;
 				for (ParameterConverter parameterConverter : parameterConverters) {
-					if (parameterConverter.accept(arg, parameterType)) {
+					if (parameterConverter.accept(parameterType)) {
 						hasAccepted = true;
 						parameterConverter.processParameter(name, arg, parameterType, ps);
 						break;

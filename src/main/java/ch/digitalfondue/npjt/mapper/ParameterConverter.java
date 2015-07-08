@@ -19,7 +19,7 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
 public interface ParameterConverter {
 
-	boolean accept(Object arg, Class<?> parameterType);
+	boolean accept(Class<?> parameterType);
 	
 	void processParameter(String parameterName, Object arg, Class<?> parameterType, MapSqlParameterSource ps);
 	
