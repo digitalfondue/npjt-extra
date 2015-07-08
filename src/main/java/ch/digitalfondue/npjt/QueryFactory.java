@@ -21,6 +21,8 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.TreeSet;
 
 import javax.sql.DataSource;
@@ -30,29 +32,28 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
 
-import ch.digitalfondue.npjt.columnmapper.ColumnMapperFactory;
-import ch.digitalfondue.npjt.columnmapper.DefaultColumnMapper;
-import ch.digitalfondue.npjt.columnmapper.EnumColumnMapper;
-import ch.digitalfondue.npjt.columnmapper.ZonedDateTimeColumnMapper;
-import ch.digitalfondue.npjt.parameterconverter.DefaultParameterConverter;
-import ch.digitalfondue.npjt.parameterconverter.EnumParameterConverter;
-import ch.digitalfondue.npjt.parameterconverter.ParameterConverter;
-import ch.digitalfondue.npjt.parameterconverter.ZonedDateTimeParameterConverter;
+import ch.digitalfondue.npjt.mapper.ColumnMapperFactory;
+import ch.digitalfondue.npjt.mapper.DefaultMapper;
+import ch.digitalfondue.npjt.mapper.EnumMapper;
+import ch.digitalfondue.npjt.mapper.InstantMapper;
+import ch.digitalfondue.npjt.mapper.LocalDateMapper;
+import ch.digitalfondue.npjt.mapper.LocalDateTimeMapper;
+import ch.digitalfondue.npjt.mapper.ParameterConverter;
+
 
 public class QueryFactory {
 	
-	private static final boolean zonedDateTimeAvailable = ClassUtils.isPresent("java.time.ZonedDateTime", QueryFactory.class.getClassLoader());
+	private static final boolean localDateTimeAvailable = ClassUtils.isPresent("java.time.LocalDateTime", QueryFactory.class.getClassLoader());
 	
-
 	private final String activeDb;
 	private final NamedParameterJdbcTemplate jdbc;
-	private final TreeSet<ColumnMapperFactory> columnMapperFactories = new TreeSet<>(new Comparator<ColumnMapperFactory>() {
+	private final ClassReferencedSortedSet<ColumnMapperFactory> columnMapperFactories = new ClassReferencedSortedSet<>(new Comparator<ColumnMapperFactory>() {
 		@Override
 		public int compare(ColumnMapperFactory o1, ColumnMapperFactory o2) {
 			return Integer.compare(o1.order(), o2.order());
 		}
 	});
-	private final TreeSet<ParameterConverter> parameterConverters = new TreeSet<>(new Comparator<ParameterConverter>() {
+	private final ClassReferencedSortedSet<ParameterConverter> parameterConverters = new ClassReferencedSortedSet<>(new Comparator<ParameterConverter>() {
 		@Override
 		public int compare(ParameterConverter o1, ParameterConverter o2) {
 			return Integer.compare(o1.order(), o2.order());
@@ -61,15 +62,50 @@ public class QueryFactory {
 	
 	//default mappers and converters
 	{
-		columnMapperFactories.add(new EnumColumnMapper.EnumColumnMapperFactory());
-		columnMapperFactories.add(new DefaultColumnMapper.DefaultColumnMapperFactory());
+		columnMapperFactories.add(new EnumMapper.Factory());
+		parameterConverters.add(new EnumMapper.Converter());
 		
-		parameterConverters.add(new DefaultParameterConverter());
-		parameterConverters.add(new EnumParameterConverter());
+		columnMapperFactories.add(new DefaultMapper.Factory());
+		parameterConverters.add(new DefaultMapper.Converter());
 		
-		if(zonedDateTimeAvailable) {
-			columnMapperFactories.add(new ZonedDateTimeColumnMapper.ZonedDateTimeColumnMapperFactory());
-			parameterConverters.add(new ZonedDateTimeParameterConverter());
+		// add support for LocalDateTime, LocalDate and Instant
+		if(localDateTimeAvailable) {
+			columnMapperFactories.add(new LocalDateMapper.Factory());
+			parameterConverters.add(new LocalDateMapper.Converter());
+			
+			columnMapperFactories.add(new LocalDateTimeMapper.Factory());
+			parameterConverters.add(new LocalDateTimeMapper.Converter());
+			
+			columnMapperFactories.add(new InstantMapper.Factory());
+			parameterConverters.add(new InstantMapper.Converter());
+		}
+	}
+	
+	/* ugly solution, TODO: find a better one for handling the removal */
+	private static class ClassReferencedSortedSet<T> {
+		final TreeSet<T> set;
+		final Map<Class<?>, T> mapping = new HashMap<>();
+		
+		ClassReferencedSortedSet(Comparator<T> comparator) {
+			this.set = new TreeSet<>(comparator);
+		}
+		
+		void add(T o) {
+			set.add(o);
+			mapping.put(o.getClass(), o);
+		}
+		
+		void clear() {
+			set.clear();
+			mapping.clear();
+		}
+		
+		void remove(Class<?> clazz) {
+			T o = mapping.get(clazz);
+			mapping.remove(clazz);
+			if(o != null) {
+				set.remove(o);
+			}
 		}
 	}
 
@@ -98,6 +134,8 @@ public class QueryFactory {
 		}
 	}
 	
+	// -----
+	
 	public QueryFactory addColumnMapperFactory(ColumnMapperFactory columnMapperFactory) {
 		columnMapperFactories.add(columnMapperFactory);
 		return this;
@@ -108,6 +146,13 @@ public class QueryFactory {
 		return this;
 	}
 	
+	public QueryFactory removeColumnMapperFactory(Class<? extends ColumnMapperFactory> clazz) {
+		columnMapperFactories.remove(clazz);
+		return this;
+	}
+	
+	//-----
+	
 	public QueryFactory addParameterConverters(ParameterConverter parameterConverter) {
 		parameterConverters.add(parameterConverter);
 		return this;
@@ -117,6 +162,13 @@ public class QueryFactory {
 		parameterConverters.clear();
 		return this;
 	}
+	
+	public QueryFactory removeParameterConverter(Class<? extends ParameterConverter> clazz) {
+		parameterConverters.remove(clazz);
+		return this;
+	}
+	
+	// -----
 
 
 	private QueryTypeAndQuery extractQueryAnnotation(Class<?> clazz, Method method) {
@@ -165,7 +217,7 @@ public class QueryFactory {
 						boolean hasAnnotation = method.getAnnotation(Query.class) != null;
 						if(hasAnnotation) {
 							QueryTypeAndQuery qs = extractQueryAnnotation(clazz, method);
-							return qs.type.apply(qs.query, jdbc, method, args, columnMapperFactories, parameterConverters);
+							return qs.type.apply(qs.query, jdbc, method, args, columnMapperFactories.set, parameterConverters.set);
 						} else if(method.getReturnType().equals(NamedParameterJdbcTemplate.class) && args == null) {
 							return jdbc;
 						} else if(IS_DEFAULT_METHOD != null && (boolean) IS_DEFAULT_METHOD.invoke(method)) {

@@ -13,20 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ch.digitalfondue.npjt.columnmapper;
+package ch.digitalfondue.npjt.mapper;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
+import org.springframework.jdbc.core.StatementCreatorUtils;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.support.JdbcUtils;
 
-import ch.digitalfondue.npjt.columnmapper.ColumnMapperFactory.AbstractColumnMapperFactory;
+import ch.digitalfondue.npjt.mapper.ColumnMapperFactory.AbstractColumnMapperFactory;
+import ch.digitalfondue.npjt.mapper.ParameterConverter.AbstractParameterConverter;
 
-public class DefaultColumnMapper extends ColumnMapper {
+public class DefaultMapper extends ColumnMapper {
+	
+	private static final int ORDER = Integer.MAX_VALUE;
 
-	public DefaultColumnMapper(String name, Class<?> paramType) {
+	public DefaultMapper(String name, Class<?> paramType) {
 		super(name, paramType);
 	}
 
@@ -34,18 +39,38 @@ public class DefaultColumnMapper extends ColumnMapper {
 		int columnIdx = rs.findColumn(name);
 		return JdbcUtils.getResultSetValue(rs, columnIdx, paramType);
 	}
-
-		
-	public static class DefaultColumnMapperFactory extends AbstractColumnMapperFactory {
+	
+	public static class Converter extends AbstractParameterConverter {
 
 		@Override
-		public ColumnMapper build(String name, Class<?> paramType) {
-			return new DefaultColumnMapper(name, paramType);
+		public boolean accept(Object arg, Class<?> parameterType) {
+			return true;
+		}
+
+		@Override
+		public void processParameter(String parameterName, Object arg,
+				Class<?> parameterType, MapSqlParameterSource ps) {
+			ps.addValue(parameterName, arg, StatementCreatorUtils.javaTypeToSqlParameterType(parameterType));
 		}
 
 		@Override
 		public int order() {
-			return Integer.MAX_VALUE;
+			return ORDER;
+		}
+
+	}
+
+		
+	public static class Factory extends AbstractColumnMapperFactory {
+
+		@Override
+		public ColumnMapper build(String name, Class<?> paramType) {
+			return new DefaultMapper(name, paramType);
+		}
+
+		@Override
+		public int order() {
+			return ORDER;
 		}
 
 		@Override

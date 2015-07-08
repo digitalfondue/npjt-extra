@@ -28,8 +28,8 @@ import java.util.Collection;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.util.Assert;
 
-import ch.digitalfondue.npjt.columnmapper.ColumnMapper;
-import ch.digitalfondue.npjt.columnmapper.ColumnMapperFactory;
+import ch.digitalfondue.npjt.mapper.ColumnMapper;
+import ch.digitalfondue.npjt.mapper.ColumnMapperFactory;
 
 public class ConstructorAnnotationRowMapper<T> implements RowMapper<T> {
 

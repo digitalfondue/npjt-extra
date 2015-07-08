@@ -39,12 +39,12 @@ import org.junit.Test;
 
 import ch.digitalfondue.npjt.ConstructorAnnotationRowMapper;
 import ch.digitalfondue.npjt.ConstructorAnnotationRowMapper.Column;
-import ch.digitalfondue.npjt.columnmapper.ColumnMapperFactory;
-import ch.digitalfondue.npjt.columnmapper.DefaultColumnMapper.DefaultColumnMapperFactory;
+import ch.digitalfondue.npjt.mapper.ColumnMapperFactory;
+import ch.digitalfondue.npjt.mapper.DefaultMapper.Factory;
 
 public class ConstructorAnnotationRowMapperTest {
 	
-	private static final List<ColumnMapperFactory> DEFAULT_COLUMN_MAPPER_FACTORY = Collections.<ColumnMapperFactory>singletonList(new DefaultColumnMapperFactory()); 
+	private static final List<ColumnMapperFactory> DEFAULT_COLUMN_MAPPER_FACTORY = Collections.<ColumnMapperFactory>singletonList(new Factory()); 
 
 	@Test
 	public void testCorrectMapping() {

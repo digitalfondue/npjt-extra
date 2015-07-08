@@ -13,12 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ch.digitalfondue.npjt.columnmapper;
+package ch.digitalfondue.npjt.mapper;
 
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.time.ZonedDateTime;
+import java.util.Calendar;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -26,38 +29,31 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import ch.digitalfondue.npjt.columnmapper.EnumColumnMapper;
+import ch.digitalfondue.npjt.mapper.ZonedDateTimeMapper;
 
 @RunWith(MockitoJUnitRunner.class)
-public class EnumColumnMapperTest {
+public class ZonedDateTimeMapperTest {
 	
-	public enum MyEnum {
-		BLA, TEST;
-	}
-
 	@Mock
 	ResultSet resultSet;
 	
 	@Test
 	public void testNull() throws SQLException {
-		EnumColumnMapper m = new EnumColumnMapper("PARAM", MyEnum.class);
+		ZonedDateTimeMapper m = new ZonedDateTimeMapper("PARAM", ZonedDateTime.class);
 		Assert.assertNull(m.getObject(resultSet));
 	}
 	
 	@Test
-	public void testValue() throws SQLException {
-		EnumColumnMapper m = new EnumColumnMapper("PARAM", MyEnum.class);
-		when(resultSet.getString("PARAM")).thenReturn("BLA");
-		Assert.assertEquals(MyEnum.BLA, m.getObject(resultSet));
+	public void testFromTimestampToZonedDateTime() throws SQLException {
+		ZonedDateTimeMapper m = new ZonedDateTimeMapper("PARAM", ZonedDateTime.class);
 		
-		when(resultSet.getString("PARAM")).thenReturn("TEST");
-		Assert.assertEquals(MyEnum.TEST, m.getObject(resultSet));
+		final int time = 42;
+		
+		when(resultSet.getTimestamp(eq("PARAM"), any(Calendar.class))).thenReturn(new Timestamp(time));
+		
+		ZonedDateTime res = (ZonedDateTime) m.getObject(resultSet);
+		Assert.assertEquals(time, res.toInstant().toEpochMilli());
+		
 	}
-	
-	@Test(expected = IllegalArgumentException.class)
-	public void testWrongValue() throws SQLException {
-		EnumColumnMapper m = new EnumColumnMapper("PARAM", MyEnum.class);
-		when(resultSet.getString("PARAM")).thenReturn("NOT_IN_ENUM");
-		m.getObject(resultSet);
-	}
+
 }

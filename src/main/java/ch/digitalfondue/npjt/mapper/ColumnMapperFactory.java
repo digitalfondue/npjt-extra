@@ -13,20 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ch.digitalfondue.npjt.columnmapper;
+package ch.digitalfondue.npjt.mapper;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import org.springframework.jdbc.core.RowMapper;
 
-public abstract class ColumnMapper {
-
-	protected final String name;
-	protected final Class<?> paramType;
-
-	public ColumnMapper(String name, Class<?> paramType) {
-		this.name = name;
-		this.paramType = paramType;
-	}
+public interface ColumnMapperFactory {
+	ColumnMapper build(String name, Class<?> paramType);
+	int order();
+	boolean accept(Class<?> paramType);
+	public abstract RowMapper<Object> getSingleColumnRowMapper(Class<Object> clzz);
 	
-	public abstract Object getObject(ResultSet rs) throws SQLException;
+	
+	abstract class AbstractColumnMapperFactory implements ColumnMapperFactory {
+	}
 }

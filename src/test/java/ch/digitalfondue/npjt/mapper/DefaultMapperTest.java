@@ -13,15 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ch.digitalfondue.npjt.columnmapper;
+package ch.digitalfondue.npjt.mapper;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Timestamp;
-import java.time.ZonedDateTime;
-import java.util.Calendar;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -29,31 +26,25 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import ch.digitalfondue.npjt.columnmapper.ZonedDateTimeColumnMapper;
+import ch.digitalfondue.npjt.mapper.DefaultMapper;
 
 @RunWith(MockitoJUnitRunner.class)
-public class ZonedDateTimeColumnMapperTest {
+public class DefaultMapperTest {
 	
 	@Mock
 	ResultSet resultSet;
 	
 	@Test
 	public void testNull() throws SQLException {
-		ZonedDateTimeColumnMapper m = new ZonedDateTimeColumnMapper("PARAM", ZonedDateTime.class);
+		DefaultMapper m = new DefaultMapper("PARAM", String.class);
 		Assert.assertNull(m.getObject(resultSet));
 	}
 	
 	@Test
-	public void testFromTimestampToZonedDateTime() throws SQLException {
-		ZonedDateTimeColumnMapper m = new ZonedDateTimeColumnMapper("PARAM", ZonedDateTime.class);
-		
-		final int time = 42;
-		
-		when(resultSet.getTimestamp(eq("PARAM"), any(Calendar.class))).thenReturn(new Timestamp(time));
-		
-		ZonedDateTime res = (ZonedDateTime) m.getObject(resultSet);
-		Assert.assertEquals(time, res.toInstant().toEpochMilli());
-		
+	public void testString() throws SQLException {
+		DefaultMapper m = new DefaultMapper("PARAM", String.class);
+		when(resultSet.findColumn("PARAM")).thenReturn(1);
+		when(resultSet.getString(1)).thenReturn("MY_VALUE");
+		Assert.assertEquals("MY_VALUE", m.getObject(resultSet));
 	}
-
 }

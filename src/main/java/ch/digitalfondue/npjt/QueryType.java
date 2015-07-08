@@ -53,8 +53,8 @@ import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 
-import ch.digitalfondue.npjt.columnmapper.ColumnMapperFactory;
-import ch.digitalfondue.npjt.parameterconverter.ParameterConverter;
+import ch.digitalfondue.npjt.mapper.ColumnMapperFactory;
+import ch.digitalfondue.npjt.mapper.ParameterConverter;
 
 /**
  * Query Type:

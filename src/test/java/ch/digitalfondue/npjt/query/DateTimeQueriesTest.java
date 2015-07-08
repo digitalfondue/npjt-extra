@@ -15,6 +15,10 @@
  */
 package ch.digitalfondue.npjt.query;
 
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 
@@ -34,6 +38,10 @@ import ch.digitalfondue.npjt.Query;
 import ch.digitalfondue.npjt.QueryFactory;
 import ch.digitalfondue.npjt.TestJdbcConfiguration;
 import ch.digitalfondue.npjt.ConstructorAnnotationRowMapper.Column;
+import ch.digitalfondue.npjt.mapper.InstantMapper;
+import ch.digitalfondue.npjt.mapper.LocalDateMapper;
+import ch.digitalfondue.npjt.mapper.LocalDateTimeMapper;
+import ch.digitalfondue.npjt.mapper.ZonedDateTimeMapper;
 
 @Transactional
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -46,6 +54,19 @@ public class DateTimeQueriesTest {
 	@Test
 	public void dateQueriesTest() {
 		QueryFactory qf = new QueryFactory("hsqldb", new JdbcTemplate(dataSource));
+		
+		qf.addColumnMapperFactory(new ZonedDateTimeMapper.Factory());
+		qf.addParameterConverters(new ZonedDateTimeMapper.Converter());
+		
+		qf.addColumnMapperFactory(new LocalDateMapper.Factory());
+		qf.addParameterConverters(new LocalDateMapper.Converter());
+		
+		qf.addColumnMapperFactory(new LocalDateTimeMapper.Factory());
+		qf.addParameterConverters(new LocalDateTimeMapper.Converter());
+		
+		qf.addColumnMapperFactory(new InstantMapper.Factory());
+		qf.addParameterConverters(new InstantMapper.Converter());
+		
 		DateQueries dq = qf.from(DateQueries.class);
 		
 		dq.createTable();
@@ -53,17 +74,56 @@ public class DateTimeQueriesTest {
 		ZonedDateTime now = ZonedDateTime.now(ZoneId.of("UTC"));
 		
 		dq.insertValue("KEY", now);
+		check(dq, "KEY", now);
 		
-		Assert.assertEquals(now, dq.findByKey("KEY").value);
-		Assert.assertEquals(now, dq.findDateByKey("KEY"));
+		dq.insertValue("KEY2", now.toLocalDate());
+		check(dq, "KEY2", now.toLocalDate());
+		
+		dq.insertValue("KEY3", now.toLocalDateTime());
+		check(dq, "KEY3", now);
+		
+		Instant iNow = Instant.now();
+		dq.insertValue("KEY4", iNow);
+		Assert.assertEquals(iNow, dq.findInstantByKey("KEY4"));
+		Assert.assertEquals(iNow, dq.findConfInstantByKey("KEY4").value);
+		
+	}
+	
+	private void check(DateQueries dq, String key, LocalDate now) {
+		Assert.assertEquals(now, dq.findByKey(key).valueLocalDate);
+		Assert.assertEquals(LocalDateTime.of(now, LocalTime.MIDNIGHT), dq.findByKey(key).valueLocalDateTime);
+	}
+
+	private void check(DateQueries dq, String key, ZonedDateTime now) {
+		Assert.assertEquals(now, dq.findByKey(key).value);
+		Assert.assertEquals(now, dq.findDateByKey(key));
+		Assert.assertEquals(now.toLocalDate(), dq.findByKey(key).valueLocalDate);
+		Assert.assertEquals(now.toLocalDateTime(), dq.findByKey(key).valueLocalDateTime);
 	}
 	
 	public static class Conf {
 		final String key;
 		final ZonedDateTime value;
+		final LocalDate valueLocalDate;
+		final LocalDateTime valueLocalDateTime;
 
 		public Conf(@Column("CONF_KEY") String key,
-				@Column("CONF_VALUE") ZonedDateTime value) {
+				@Column("CONF_VALUE") ZonedDateTime value,
+				@Column("CONF_VALUE") LocalDate valueLocalDate,
+				@Column("CONF_VALUE") LocalDateTime valueLocalDateTime) {
+			this.key = key;
+			this.value = value;
+			this.valueLocalDate = valueLocalDate;
+			this.valueLocalDateTime = valueLocalDateTime;
+		}
+	}
+	
+	public static class ConfInstant {
+		final String key;
+		final Instant value;
+		
+		public ConfInstant(@Column("CONF_KEY") String key,
+				@Column("CONF_VALUE") Instant value) {
 			this.key = key;
 			this.value = value;
 		}
@@ -77,8 +137,23 @@ public class DateTimeQueriesTest {
 		@Query("INSERT INTO LA_CONF_DATE(CONF_KEY, CONF_VALUE) VALUES(:key, :value)")
 		int insertValue(@Bind("key") String key, @Bind("value") ZonedDateTime date);
 		
+		@Query("INSERT INTO LA_CONF_DATE(CONF_KEY, CONF_VALUE) VALUES(:key, :value)")
+		int insertValue(@Bind("key") String key, @Bind("value") LocalDate date);
+		
+		@Query("INSERT INTO LA_CONF_DATE(CONF_KEY, CONF_VALUE) VALUES(:key, :value)")
+		int insertValue(@Bind("key") String key, @Bind("value") LocalDateTime date);
+		
+		@Query("INSERT INTO LA_CONF_DATE(CONF_KEY, CONF_VALUE) VALUES(:key, :value)")
+		int insertValue(@Bind("key") String key, @Bind("value") Instant date);
+		
 		@Query("SELECT * FROM LA_CONF_DATE WHERE CONF_KEY = :key")
 		Conf findByKey(@Bind("key") String key);
+		
+		@Query("SELECT CONF_VALUE FROM LA_CONF_DATE WHERE CONF_KEY = :key")
+		Instant findInstantByKey(@Bind("key") String key);
+		
+		@Query("SELECT * FROM LA_CONF_DATE WHERE CONF_KEY = :key")
+		ConfInstant findConfInstantByKey(@Bind("key") String key);
 		
 		@Query("SELECT CONF_VALUE FROM LA_CONF_DATE WHERE CONF_KEY = :key")
 		ZonedDateTime findDateByKey(@Bind("key") String key);

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ch.digitalfondue.npjt.parameterconverter;
+package ch.digitalfondue.npjt.mapper;
 
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 

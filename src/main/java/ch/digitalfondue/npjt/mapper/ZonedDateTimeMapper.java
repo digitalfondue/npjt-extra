@@ -13,26 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ch.digitalfondue.npjt.columnmapper;
+package ch.digitalfondue.npjt.mapper;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.sql.Types;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Calendar;
 import java.util.TimeZone;
 
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
-import ch.digitalfondue.npjt.columnmapper.ColumnMapperFactory.AbstractColumnMapperFactory;
+import ch.digitalfondue.npjt.mapper.ColumnMapperFactory.AbstractColumnMapperFactory;
+import ch.digitalfondue.npjt.mapper.ParameterConverter.AbstractParameterConverter;
 
-public class ZonedDateTimeColumnMapper extends ColumnMapper {
+public class ZonedDateTimeMapper extends ColumnMapper {
+	
+	private static final int ORDER = Integer.MAX_VALUE -2;
 	
 	private static final TimeZone UTC_TZ = TimeZone.getTimeZone("UTC");
 	private static final ZoneId UTC_Z_ID = ZoneId.of("UTC");
 
-	public ZonedDateTimeColumnMapper(String name, Class<?> paramType) {
+	public ZonedDateTimeMapper(String name, Class<?> paramType) {
 		super(name, paramType);
 	}
 
@@ -48,23 +53,50 @@ public class ZonedDateTimeColumnMapper extends ColumnMapper {
 		return ZonedDateTime.ofInstant(timestamp.toInstant(), UTC_Z_ID);
 	}
 
-
-	
-	public static class ZonedDateTimeColumnMapperFactory extends AbstractColumnMapperFactory {
+	public static class Converter extends AbstractParameterConverter {
 
 		@Override
-		public ColumnMapper build(String name, Class<?> paramType) {
-			return new ZonedDateTimeColumnMapper(name, paramType);
+		public boolean accept(Object arg, Class<?> parameterType) {
+			return ZonedDateTime.class.isAssignableFrom(parameterType);
+		}
+
+		@Override
+		public void processParameter(String parameterName, Object arg, Class<?> parameterType, MapSqlParameterSource ps) {
+			Calendar c = null;
+			if(arg != null) {
+				ZonedDateTime dateTime = ZonedDateTime.class.cast(arg);
+				ZonedDateTime utc = dateTime.withZoneSameInstant(UTC_Z_ID);
+				c = Calendar.getInstance();
+				c.setTimeZone(UTC_TZ);
+				c.setTimeInMillis(utc.toInstant().toEpochMilli());
+			}
+			ps.addValue(parameterName, c, Types.TIMESTAMP);
 		}
 
 		@Override
 		public int order() {
-			return Integer.MAX_VALUE -2;
+			return ORDER;
+		}
+
+	}
+
+
+	
+	public static class Factory extends AbstractColumnMapperFactory {
+
+		@Override
+		public ColumnMapper build(String name, Class<?> paramType) {
+			return new ZonedDateTimeMapper(name, paramType);
+		}
+
+		@Override
+		public int order() {
+			return ORDER;
 		}
 
 		@Override
 		public boolean accept(Class<?> paramType) {
-			return paramType.isAssignableFrom(ZonedDateTime.class);
+			return ZonedDateTime.class.isAssignableFrom(paramType);
 		}
 
 		@Override

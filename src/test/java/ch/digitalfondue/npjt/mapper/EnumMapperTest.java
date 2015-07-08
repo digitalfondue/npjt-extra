@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ch.digitalfondue.npjt.columnmapper;
+package ch.digitalfondue.npjt.mapper;
 
 import static org.mockito.Mockito.when;
 
@@ -26,23 +26,38 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import ch.digitalfondue.npjt.mapper.EnumMapper;
+
 @RunWith(MockitoJUnitRunner.class)
-public class DefaultColumnMapperTest {
+public class EnumMapperTest {
 	
+	public enum MyEnum {
+		BLA, TEST;
+	}
+
 	@Mock
 	ResultSet resultSet;
 	
 	@Test
 	public void testNull() throws SQLException {
-		DefaultColumnMapper m = new DefaultColumnMapper("PARAM", String.class);
+		EnumMapper m = new EnumMapper("PARAM", MyEnum.class);
 		Assert.assertNull(m.getObject(resultSet));
 	}
 	
 	@Test
-	public void testString() throws SQLException {
-		DefaultColumnMapper m = new DefaultColumnMapper("PARAM", String.class);
-		when(resultSet.findColumn("PARAM")).thenReturn(1);
-		when(resultSet.getString(1)).thenReturn("MY_VALUE");
-		Assert.assertEquals("MY_VALUE", m.getObject(resultSet));
+	public void testValue() throws SQLException {
+		EnumMapper m = new EnumMapper("PARAM", MyEnum.class);
+		when(resultSet.getString("PARAM")).thenReturn("BLA");
+		Assert.assertEquals(MyEnum.BLA, m.getObject(resultSet));
+		
+		when(resultSet.getString("PARAM")).thenReturn("TEST");
+		Assert.assertEquals(MyEnum.TEST, m.getObject(resultSet));
+	}
+	
+	@Test(expected = IllegalArgumentException.class)
+	public void testWrongValue() throws SQLException {
+		EnumMapper m = new EnumMapper("PARAM", MyEnum.class);
+		when(resultSet.getString("PARAM")).thenReturn("NOT_IN_ENUM");
+		m.getObject(resultSet);
 	}
 }

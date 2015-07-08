@@ -13,19 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ch.digitalfondue.npjt.columnmapper;
+package ch.digitalfondue.npjt.mapper;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
-import ch.digitalfondue.npjt.columnmapper.ColumnMapperFactory.AbstractColumnMapperFactory;
+import ch.digitalfondue.npjt.mapper.ColumnMapperFactory.AbstractColumnMapperFactory;
+import ch.digitalfondue.npjt.mapper.ParameterConverter.AbstractParameterConverter;
 
-public class EnumColumnMapper extends ColumnMapper {
+public class EnumMapper extends ColumnMapper {
+	
+	private static final int ORDER = Integer.MAX_VALUE - 1;
 
 
-	public EnumColumnMapper(String name, Class<?> paramType) {
+	public EnumMapper(String name, Class<?> paramType) {
 		super(name, paramType);
 	}
 
@@ -41,18 +45,37 @@ public class EnumColumnMapper extends ColumnMapper {
 		Class<? extends Enum> enumType = (Class<? extends Enum<?>>) paramType;
 		return res == null ? null : Enum.valueOf(enumType, res.trim());
 	}
-
 	
-	public static class EnumColumnMapperFactory extends AbstractColumnMapperFactory {
+	public static class Converter extends AbstractParameterConverter {
 
 		@Override
-		public ColumnMapper build(String name, Class<?> paramType) {
-			return new EnumColumnMapper(name, paramType);
+		public boolean accept(Object arg, Class<?> parameterType) {
+			return parameterType.isEnum();
+		}
+
+		@Override
+		public void processParameter(String parameterName, Object arg, Class<?> parameterType, MapSqlParameterSource ps) {
+			ps.addValue(parameterName, ((Enum<?>)arg).name());
 		}
 
 		@Override
 		public int order() {
-			return Integer.MAX_VALUE - 1;
+			return ORDER;
+		}
+
+	}
+
+	
+	public static class Factory extends AbstractColumnMapperFactory {
+
+		@Override
+		public ColumnMapper build(String name, Class<?> paramType) {
+			return new EnumMapper(name, paramType);
+		}
+
+		@Override
+		public int order() {
+			return ORDER;
 		}
 
 		@Override
