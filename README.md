@@ -20,32 +20,35 @@ See the Use and examples section.
 <dependency>
 	<groupId>ch.digitalfondue.npjt-extra</groupId>
 	<artifactId>npjt-extra</artifactId>
-	<version>1.0.2</version>
+	<version>1.1.0</version>
 </dependency>
 ```
 
 ### Gradle
 
 ```
-compile "ch.digitalfondue.npjt-extra:npjt-extra:1.0.2"
+compile "ch.digitalfondue.npjt-extra:npjt-extra:1.1.0"
 ```
 
 ## Use and examples
 
 npjt-extra is composed of 3 parts: 
 
- - an annotation based RowMapper
+ - a default RowMapper (annotation based)
  - an interface based query repository
  - the configuration classes
 
 ### RowMapping definition
 
-For mapping a row to a class, npjt-extra require the following restriction:
+For mapping a row to a class, npjt-extra offer a default row mapper that require the following restriction:
 
  - the class must have only **one public constructor** (this restriction could be lifted off).
  - each of the constructor argument must have a @Column annotation that map the column name to the parameter.
 
-This constructor approach is for promoting an immutable model. 
+This constructor approach is for promoting an immutable model.
+
+*IF* you cannot map using this strategy, you can specify the mapper class in the @Query and @QueryOverride annotation.
+See below in the "Basic use" section.
 
 Example:
 
@@ -66,7 +69,7 @@ public static class Conf {
 
 ```
 
-As you can probably guess, this class will map a ResultSet containing 2 column named "CONF_KEY" and "CONF_VALUE". 
+As you can probably guess, this class will map a ResultSet containing 2 column named "CONF_KEY" and "CONF_VALUE".
 
 ### Query repository definition
 
@@ -104,6 +107,11 @@ public interface MySimpleQueries {
   /** It will map multiple values too */
   @Query("SELECT * FROM LA_CONF")
   List<Conf> findAll();
+  
+  
+  /** You can override the default mapper and specify your own */
+  @Query(value = "SELECT * FROM LA_CONF", mapper = MyConfMapper.class)
+  List<MyConf> findAllCustomMapper();
   
   
   /** You can search "simple" types too if they are supported by spring jdbc */
@@ -145,6 +153,8 @@ When creating the ch.digitalfondue.npjt.QueryFactory that will generate the repo
 
 
 If the db name match the db parameter specified in a @QueryOverride, the associated String value will be used.
+
+*Note*: if you are defining a custom mapper in the @Query annotation, _you_ must specify it in the @QueryOverride too!
 
 #### Fetch generated keys
 
