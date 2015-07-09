@@ -15,6 +15,8 @@
  */
 package ch.digitalfondue.npjt.query;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,6 +26,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -84,6 +87,10 @@ public class SimpleQueriesTest {
 		Assert.assertEquals("MY_VALUE_UPDATED", mq.findOptionalValueForKey("MY_KEY").get());
 		
 		Assert.assertFalse(mq.findOptionalValueForKey("MY_KEY_NOT").isPresent());
+		
+		Assert.assertEquals("MY_VALUE_UPDATED", mq.findOptionalWrappedValueForKey("MY_KEY").get().value);
+		
+		Assert.assertFalse(mq.findOptionalWrappedValueForKey("MY_KEY_NOT").isPresent());
 	}
 
 	public static class Conf {
@@ -95,6 +102,23 @@ public class SimpleQueriesTest {
 			this.key = key;
 			this.value = value;
 		}
+	}
+	
+	public static class MyCustomWrapper {
+		final String value;
+		
+		public MyCustomWrapper(String value) {
+			this.value = value;
+		}
+	}
+	
+	public static class MyCustomWrapperRowMapper implements RowMapper<MyCustomWrapper> {
+
+		@Override
+		public MyCustomWrapper mapRow(ResultSet rs, int rowNum) throws SQLException {
+			return new MyCustomWrapper(rs.getString(1));
+		}
+		
 	}
 
 	public interface MySimpleQueries {
@@ -119,6 +143,9 @@ public class SimpleQueriesTest {
 		
 		@Query("SELECT CONF_VALUE FROM LA_CONF WHERE CONF_KEY = :key")
 		Optional<String> findOptionalValueForKey(@Bind("key") String key);
+		
+		@Query(value = "SELECT CONF_VALUE FROM LA_CONF WHERE CONF_KEY = :key", mapper = MyCustomWrapperRowMapper.class)
+		Optional<MyCustomWrapper> findOptionalWrappedValueForKey(@Bind("key") String key);
 
 		@Query("UPDATE LA_CONF SET CONF_VALUE = :value WHERE CONF_KEY = :key")
 		int update(@Bind("key") String key, @Bind("value") String value);

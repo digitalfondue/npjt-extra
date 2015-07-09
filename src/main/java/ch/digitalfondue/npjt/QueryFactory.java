@@ -127,10 +127,12 @@ public class QueryFactory {
 	private static class QueryTypeAndQuery {
 		private final QueryType type;
 		private final String query;
+		private final Class<?> rowMapperClass;
 
-		QueryTypeAndQuery(QueryType type, String query) {
+		QueryTypeAndQuery(QueryType type, String query, Class<?> rowMapperClass) {
 			this.type = type;
 			this.query = query;
+			this.rowMapperClass = rowMapperClass;
 		}
 	}
 	
@@ -178,16 +180,16 @@ public class QueryFactory {
 
 		// only one @Query annotation, thus we return the value without checking the database
 		if (qs == null) {
-			return new QueryTypeAndQuery(q.type(), q.value());
+			return new QueryTypeAndQuery(q.type(), q.value(), q.mapper());
 		}
-
+		
 		for (QueryOverride query : qs.value()) {
 			if (query.db().equals(activeDb)) {
-				return new QueryTypeAndQuery(q.type(), query.value());
+				return new QueryTypeAndQuery(q.type(), query.value(), query.mapper());
 			}
 		}
 
-		return new QueryTypeAndQuery(q.type(), q.value());
+		return new QueryTypeAndQuery(q.type(), q.value(), q.mapper());
 	}
 	
 	//from https://rmannibucau.wordpress.com/2014/03/27/java-8-default-interface-methods-and-jdk-dynamic-proxies/
@@ -217,7 +219,7 @@ public class QueryFactory {
 						boolean hasAnnotation = method.getAnnotation(Query.class) != null;
 						if(hasAnnotation) {
 							QueryTypeAndQuery qs = extractQueryAnnotation(clazz, method);
-							return qs.type.apply(qs.query, jdbc, method, args, columnMapperFactories.set, parameterConverters.set);
+							return qs.type.apply(qs.query, qs.rowMapperClass, jdbc, method, args, columnMapperFactories.set, parameterConverters.set);
 						} else if(method.getReturnType().equals(NamedParameterJdbcTemplate.class) && args == null) {
 							return jdbc;
 						} else if(IS_DEFAULT_METHOD != null && (boolean) IS_DEFAULT_METHOD.invoke(method)) {

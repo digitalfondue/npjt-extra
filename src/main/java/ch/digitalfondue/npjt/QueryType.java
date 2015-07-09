@@ -74,7 +74,9 @@ public enum QueryType {
 	 */
 	TEMPLATE {
 		@Override
-		String apply(String template, NamedParameterJdbcTemplate jdbc, Method method, Object[] args, Collection<ColumnMapperFactory> columnMapperFactories, Collection<ParameterConverter> parameterConverters) {
+		String apply(String template, Class<?> rowMapper, NamedParameterJdbcTemplate jdbc, 
+				Method method, Object[] args, 
+				Collection<ColumnMapperFactory> columnMapperFactories, Collection<ParameterConverter> parameterConverters) {
 			return template;
 		}
 	},
@@ -94,12 +96,14 @@ public enum QueryType {
 		private final Map<Class<Object>, HasRowmapper> cachedClassToMapper = new ConcurrentHashMap<>();
 
 		@Override
-		Object apply(String template, NamedParameterJdbcTemplate jdbc, Method method, Object[] args, Collection<ColumnMapperFactory> columnMapperFactories, Collection<ParameterConverter> parameterConverters) {
+		Object apply(String template, Class<?> rowMapper, NamedParameterJdbcTemplate jdbc, 
+				Method method, Object[] args, 
+				Collection<ColumnMapperFactory> columnMapperFactories, Collection<ParameterConverter> parameterConverters) {
 			JdbcAction action = actionFromContext(method, template);
 			SqlParameterSource parameters = extractParameters(method, args, parameterConverters);
 			switch (action) {
 			case QUERY:
-				return doQuery(template, jdbc, method, parameters, columnMapperFactories);
+				return doQuery(template, rowMapper, jdbc, method, parameters, columnMapperFactories);
 			case UPDATE:
 				return jdbc.update(template, parameters);
 			case INSERT_W_AUTO_GENERATED_KEY:
@@ -111,13 +115,14 @@ public enum QueryType {
 
 		
 		@SuppressWarnings("unchecked")
-		private Object doQuery(String template,
+		private Object doQuery(String template, Class<?> rowMapper,
 				NamedParameterJdbcTemplate jdbc, Method method,
 				SqlParameterSource parameters, Collection<ColumnMapperFactory> columnMapperFactories) {
 			boolean isReturnOptional = isReturnOptional(method);
 			if (method.getReturnType().isAssignableFrom(List.class) || isReturnOptional) {
 				Class<Object> c = extractGenericMethod(method);
-				HasRowmapper r = getRowMapper(c, columnMapperFactories);
+				
+				HasRowmapper r = getRowMapper(c, rowMapper, columnMapperFactories);
 				
 				List<Object> res = handleList(template, jdbc, parameters, columnMapperFactories, c, r);
 				if(isReturnOptional) {
@@ -127,20 +132,28 @@ public enum QueryType {
 				}
 			} else {
 				Class<Object> c = (Class<Object>) method.getReturnType();
-				HasRowmapper r = getRowMapper(c, columnMapperFactories);
+				HasRowmapper r = getRowMapper(c, rowMapper, columnMapperFactories);
 				return handleSingleObject(template, jdbc, parameters, columnMapperFactories, c, r);
 			}
 		}
 
-		private HasRowmapper getRowMapper(Class<Object> c, Collection<ColumnMapperFactory> columnMapperFactories) {
-			if (!cachedClassToMapper.containsKey(c)) {
+		@SuppressWarnings("unchecked")
+		private HasRowmapper getRowMapper(Class<Object> c, Class<?> rowMapper, Collection<ColumnMapperFactory> columnMapperFactories) {
+			
+			if(rowMapper != ConstructorAnnotationRowMapper.class) {
+				try {
+					return new HasRowmapper(true, (RowMapper<Object>) rowMapper.newInstance());
+				} catch (InstantiationException | IllegalAccessException e) {
+					throw new IllegalArgumentException("Was not able to create a new instance of " + rowMapper + ". It require a 0 args constructor.", e);
+				}
+			} else if (!cachedClassToMapper.containsKey(c)) {
 				cachedClassToMapper.put(c, handleClass(c, columnMapperFactories));
 			}
 			return cachedClassToMapper.get(c);
 		}
 	};
 	
-	abstract Object apply(String template, NamedParameterJdbcTemplate jdbc,
+	abstract Object apply(String template, Class<?> rowMapper, NamedParameterJdbcTemplate jdbc,
 			Method method, Object[] args, 
 			Collection<ColumnMapperFactory> columnMapperFactories,
 			Collection<ParameterConverter> parameterConverters);

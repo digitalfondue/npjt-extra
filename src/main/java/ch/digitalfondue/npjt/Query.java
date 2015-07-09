@@ -20,10 +20,14 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import org.springframework.jdbc.core.RowMapper;
+
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface Query {
 	String value();
-
 	QueryType type() default QueryType.EXECUTE;
+	
+	@SuppressWarnings("rawtypes")
+	Class<? extends RowMapper> mapper() default ConstructorAnnotationRowMapper.class;
 }
