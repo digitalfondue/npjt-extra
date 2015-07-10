@@ -24,8 +24,8 @@ import java.time.Instant;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
-import ch.digitalfondue.npjt.mapper.ColumnMapperFactory.AbstractColumnMapperFactory;
-import ch.digitalfondue.npjt.mapper.ParameterConverter.AbstractParameterConverter;
+import ch.digitalfondue.npjt.mapper.ColumnMapperFactory;
+import ch.digitalfondue.npjt.mapper.ParameterConverter;
 
 public class InstantMapper extends ColumnMapper {
 	
@@ -44,7 +44,7 @@ public class InstantMapper extends ColumnMapper {
 		return ts != null ? ts.toInstant() : null;
 	}
 	
-	public static class Converter extends AbstractParameterConverter {
+	public static class Converter implements ParameterConverter {
 
 		@Override
 		public boolean accept(Class<?> parameterType) {
@@ -63,7 +63,7 @@ public class InstantMapper extends ColumnMapper {
 		}
 	}
 	
-	public static class Factory extends AbstractColumnMapperFactory {
+	public static class Factory implements ColumnMapperFactory {
 
 		@Override
 		public ColumnMapper build(String name, Class<?> paramType) {

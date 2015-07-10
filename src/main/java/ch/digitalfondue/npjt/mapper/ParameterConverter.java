@@ -24,7 +24,4 @@ public interface ParameterConverter {
 	void processParameter(String parameterName, Object arg, Class<?> parameterType, MapSqlParameterSource ps);
 	
 	int order();
-	
-	abstract class AbstractParameterConverter implements ParameterConverter {
-	}
 }

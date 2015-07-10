@@ -21,8 +21,8 @@ import java.sql.SQLException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
-import ch.digitalfondue.npjt.mapper.ColumnMapperFactory.AbstractColumnMapperFactory;
-import ch.digitalfondue.npjt.mapper.ParameterConverter.AbstractParameterConverter;
+import ch.digitalfondue.npjt.mapper.ColumnMapperFactory;
+import ch.digitalfondue.npjt.mapper.ParameterConverter;
 
 public class EnumMapper extends ColumnMapper {
 	
@@ -46,7 +46,7 @@ public class EnumMapper extends ColumnMapper {
 		return res == null ? null : Enum.valueOf(enumType, res.trim());
 	}
 	
-	public static class Converter extends AbstractParameterConverter {
+	public static class Converter implements ParameterConverter {
 
 		@Override
 		public boolean accept(Class<?> parameterType) {
@@ -66,7 +66,7 @@ public class EnumMapper extends ColumnMapper {
 	}
 
 	
-	public static class Factory extends AbstractColumnMapperFactory {
+	public static class Factory implements ColumnMapperFactory {
 
 		@Override
 		public ColumnMapper build(String name, Class<?> paramType) {

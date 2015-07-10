@@ -327,9 +327,40 @@ public class MyConfig2 {
 
 All the annotated interfaces will be available in your spring context.
 
-### Custom data type mapping
+### Data type mapping
 
-[TODO]
+By default, npjt-extra has the following input parameters/result set mapping facilities enabled:
+
+ - a default parameter/result set mapper which use the same logic as the one from the jdbctemplate
+ - a enum mapper that convert from/to a string representation
+ - if java 8 is enabled, it will support LocalDate, LocalDateTime and Instant
+
+You can configure/alter the default configuration calling the following methods on the `QueryFactory`
+
+For input parameters:
+
+ - `addParameterConverters(ParameterConverter parameterConverter)`: for adding a new parameter converter
+ - `removeParameterConverter(Class<? extends ParameterConverter> clazz)`: remove a specific ParameterConverter
+ - `emptyParameterConverters()`: remove _all_ parameter converters (note: the query factory will not be able to map parameters correctly without at least one!)
+ 
+For the result set objects:
+
+ - `addColumnMapperFactory(ColumnMapperFactory columnMapperFactory)`: for adding a new column mapper
+ - `removeColumnMapperFactory(Class<? extends ColumnMapperFactory> clazz)`: for removing a specific column mapper
+ - `emptyColumnMapperFactories()`: remove _all_ column mappers note: the query factory will not be able to map parameters correctly without at least one!)
+ 
+
+For both mappers, the application order is defined by the `order()` method. The smallest the `int` returned, the higher the priority.
+ 
+
+#### Input parameters mapping
+
+You must implement the `ch.digitalfondue.npjt.mapper.ParameterConverter` interface and register the converter in the queryFactory calling the `QueryFactory.addParameterConverters(ParameterConverter parameterConverter)` method.
+
+#### Result set objects mapping 
+
+You must implement the `ch.digitalfondue.npjt.mapper.ColumnMapperFactory` interface and register the converter in the queryFactory calling the `addColumnMapperFactory(ColumnMapperFactory columnMapperFactory)` method.
+ 
 
 ## Javadoc
 

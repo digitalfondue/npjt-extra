@@ -22,8 +22,4 @@ public interface ColumnMapperFactory {
 	int order();
 	boolean accept(Class<?> paramType);
 	public abstract RowMapper<Object> getSingleColumnRowMapper(Class<Object> clzz);
-	
-	
-	abstract class AbstractColumnMapperFactory implements ColumnMapperFactory {
-	}
 }

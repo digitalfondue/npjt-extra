@@ -24,8 +24,8 @@ import org.springframework.jdbc.core.StatementCreatorUtils;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.support.JdbcUtils;
 
-import ch.digitalfondue.npjt.mapper.ColumnMapperFactory.AbstractColumnMapperFactory;
-import ch.digitalfondue.npjt.mapper.ParameterConverter.AbstractParameterConverter;
+import ch.digitalfondue.npjt.mapper.ColumnMapperFactory;
+import ch.digitalfondue.npjt.mapper.ParameterConverter;
 
 public class DefaultMapper extends ColumnMapper {
 	
@@ -40,7 +40,7 @@ public class DefaultMapper extends ColumnMapper {
 		return JdbcUtils.getResultSetValue(rs, columnIdx, paramType);
 	}
 	
-	public static class Converter extends AbstractParameterConverter {
+	public static class Converter implements ParameterConverter {
 
 		@Override
 		public boolean accept(Class<?> parameterType) {
@@ -61,7 +61,7 @@ public class DefaultMapper extends ColumnMapper {
 	}
 
 		
-	public static class Factory extends AbstractColumnMapperFactory {
+	public static class Factory implements ColumnMapperFactory {
 
 		@Override
 		public ColumnMapper build(String name, Class<?> paramType) {
