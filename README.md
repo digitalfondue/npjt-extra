@@ -364,7 +364,7 @@ You must implement the `ch.digitalfondue.npjt.mapper.ColumnMapperFactory` interf
 
 ## Javadoc
 
-[TODO]
+ - 1.1.0 : http://digitalfondue.ch/npjt-extra/javadoc/1.1.0/
 
 ## License
 
