@@ -125,7 +125,7 @@ public enum QueryType {
 				
 				HasRowmapper r = getRowMapper(c, rowMapper, columnMapperFactories);
 				
-				List<Object> res = handleList(template, jdbc, parameters, columnMapperFactories, c, r);
+				List<Object> res = handleList(template, jdbc, parameters, columnMapperFactories, c, r, method);
 				if(isReturnOptional) {
 					 return buildOptional(res);
 				} else {
@@ -134,7 +134,7 @@ public enum QueryType {
 			} else {
 				Class<Object> c = (Class<Object>) method.getReturnType();
 				HasRowmapper r = getRowMapper(c, rowMapper, columnMapperFactories);
-				return handleSingleObject(template, jdbc, parameters, columnMapperFactories, c, r);
+				return handleSingleObject(template, jdbc, parameters, columnMapperFactories, c, r, method);
 			}
 		}
 
@@ -162,11 +162,11 @@ public enum QueryType {
 	private static Object handleSingleObject(String template,
 			NamedParameterJdbcTemplate jdbc, SqlParameterSource parameters,
 			Collection<ColumnMapperFactory> columnMapperFactories,
-			Class<Object> c, HasRowmapper r) {
+			Class<Object> c, HasRowmapper r, Method method) {
 		if (r.present) {
 			return jdbc.queryForObject(template, parameters, r.rowMapper);
 		} else {
-			RowMapper<Object> rowMapper = matchToOutput(columnMapperFactories, c);
+			RowMapper<Object> rowMapper = matchToOutput(columnMapperFactories, c, method.getAnnotations());
 			if(rowMapper != null) {
 				return jdbc.queryForObject(template, parameters, rowMapper);
 			} else {
@@ -209,12 +209,12 @@ public enum QueryType {
 	
 	private static final boolean optionalAvailable = ClassUtils.isPresent("java.util.Optional", QueryType.class.getClassLoader());
 
-	private static final Annotation[] EMPTY_ANNOTATIONS_ARRAY = new Annotation[]{};
+
 	
-	private static RowMapper<Object> matchToOutput(Collection<ColumnMapperFactory> columnMapperFactories, Class<Object> o) {
+	private static RowMapper<Object> matchToOutput(Collection<ColumnMapperFactory> columnMapperFactories, Class<Object> o, Annotation[] annotations) {
 		
 		for(ColumnMapperFactory mapper : columnMapperFactories) {
-			if(mapper.accept(o, EMPTY_ANNOTATIONS_ARRAY)) {
+			if(mapper.accept(o, annotations)) {
 				return mapper.getSingleColumnRowMapper(o);
 			}
 		}		
@@ -337,7 +337,7 @@ public enum QueryType {
 		}
 
 		for(Annotation a : annotations) {
-			if(a.getClass() == c) {
+			if(a.annotationType() == c) {
 				return (T) a;
 			}
 		}
@@ -347,11 +347,11 @@ public enum QueryType {
 	private static List<Object> handleList(String template,
 			NamedParameterJdbcTemplate jdbc, SqlParameterSource parameters,
 			Collection<ColumnMapperFactory> columnMapperFactories,
-			Class<Object> c, HasRowmapper r) {
+			Class<Object> c, HasRowmapper r, Method method) {
 		if (r.present) {
 			return jdbc.query(template, parameters, r.rowMapper);
 		} else {
-			RowMapper<Object> rowMapper = matchToOutput(columnMapperFactories, c);
+			RowMapper<Object> rowMapper = matchToOutput(columnMapperFactories, c, method.getAnnotations());
 			if(rowMapper != null) {
 				return jdbc.query(template, parameters, rowMapper);
 			} else {
