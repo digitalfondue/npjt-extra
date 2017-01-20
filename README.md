@@ -2,6 +2,7 @@ npjt-extra
 ==========
 
 [![Build Status](https://travis-ci.org/digitalfondue/npjt-extra.svg?branch=master)](https://travis-ci.org/digitalfondue/npjt-extra) [![Coverage Status](https://coveralls.io/repos/digitalfondue/npjt-extra/badge.svg?branch=master)](https://coveralls.io/r/digitalfondue/npjt-extra?branch=master)
+[![Maven Central](https://img.shields.io/maven-central/v/ch.digitalfondue.npjt-extra/npjt-extra.svg)](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22ch.digitalfondue.npjt-extra%22%20AND%20a%3A%22npjt-extra%22)
 
 A small layer over Spring's NamedParameterJdbcTemplate, it provide a similar interface as :
 
