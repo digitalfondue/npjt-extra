@@ -15,6 +15,7 @@
  */
 package ch.digitalfondue.npjt.mapper;
 
+import java.lang.annotation.Annotation;
 import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -23,9 +24,6 @@ import java.time.LocalDate;
 
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
-
-import ch.digitalfondue.npjt.mapper.ColumnMapperFactory;
-import ch.digitalfondue.npjt.mapper.ParameterConverter;
 
 public class LocalDateMapper extends ColumnMapper {
 	
@@ -47,7 +45,7 @@ public class LocalDateMapper extends ColumnMapper {
 	public static class Converter implements ParameterConverter {
 
 		@Override
-		public boolean accept(Class<?> parameterType) {
+		public boolean accept(Class<?> parameterType, Annotation[] annotations) {
 			return LocalDate.class.equals(parameterType);
 		}
 
@@ -77,7 +75,7 @@ public class LocalDateMapper extends ColumnMapper {
 		}
 
 		@Override
-		public boolean accept(Class<?> paramType) {
+		public boolean accept(Class<?> paramType, Annotation[] annotations) {
 			return LocalDate.class.equals(paramType);
 		}
 

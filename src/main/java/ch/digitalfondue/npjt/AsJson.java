@@ -13,15 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ch.digitalfondue.npjt.mapper;
+package ch.digitalfondue.npjt;
 
-import org.springframework.jdbc.core.RowMapper;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-import java.lang.annotation.Annotation;
-
-public interface ColumnMapperFactory {
-	ColumnMapper build(String name, Class<?> paramType);
-	int order();
-	boolean accept(Class<?> paramType, Annotation[] annotations);
-	public abstract RowMapper<Object> getSingleColumnRowMapper(Class<Object> clzz);
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.PARAMETER)
+public @interface AsJson {
 }

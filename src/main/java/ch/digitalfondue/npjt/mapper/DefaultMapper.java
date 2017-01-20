@@ -15,6 +15,7 @@
  */
 package ch.digitalfondue.npjt.mapper;
 
+import java.lang.annotation.Annotation;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
@@ -23,9 +24,6 @@ import org.springframework.jdbc.core.SingleColumnRowMapper;
 import org.springframework.jdbc.core.StatementCreatorUtils;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.support.JdbcUtils;
-
-import ch.digitalfondue.npjt.mapper.ColumnMapperFactory;
-import ch.digitalfondue.npjt.mapper.ParameterConverter;
 
 public class DefaultMapper extends ColumnMapper {
 	
@@ -43,7 +41,7 @@ public class DefaultMapper extends ColumnMapper {
 	public static class Converter implements ParameterConverter {
 
 		@Override
-		public boolean accept(Class<?> parameterType) {
+		public boolean accept(Class<?> parameterType, Annotation[] annotations) {
 			return true;
 		}
 
@@ -74,7 +72,7 @@ public class DefaultMapper extends ColumnMapper {
 		}
 
 		@Override
-		public boolean accept(Class<?> paramType) {
+		public boolean accept(Class<?> paramType, Annotation[] annotations) {
 			return true;
 		}
 

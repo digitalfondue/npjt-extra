@@ -15,6 +15,7 @@
  */
 package ch.digitalfondue.npjt.mapper;
 
+import java.lang.annotation.Annotation;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -26,9 +27,6 @@ import java.util.TimeZone;
 
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
-
-import ch.digitalfondue.npjt.mapper.ColumnMapperFactory;
-import ch.digitalfondue.npjt.mapper.ParameterConverter;
 
 public class ZonedDateTimeMapper extends ColumnMapper {
 	
@@ -56,7 +54,7 @@ public class ZonedDateTimeMapper extends ColumnMapper {
 	public static class Converter implements ParameterConverter {
 
 		@Override
-		public boolean accept(Class<?> parameterType) {
+		public boolean accept(Class<?> parameterType, Annotation[] annotations) {
 			return ZonedDateTime.class.isAssignableFrom(parameterType);
 		}
 
@@ -95,7 +93,7 @@ public class ZonedDateTimeMapper extends ColumnMapper {
 		}
 
 		@Override
-		public boolean accept(Class<?> paramType) {
+		public boolean accept(Class<?> paramType, Annotation[] annotations) {
 			return ZonedDateTime.class.isAssignableFrom(paramType);
 		}
 

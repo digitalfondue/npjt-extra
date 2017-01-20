@@ -15,14 +15,12 @@
  */
 package ch.digitalfondue.npjt.mapper;
 
+import java.lang.annotation.Annotation;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
-
-import ch.digitalfondue.npjt.mapper.ColumnMapperFactory;
-import ch.digitalfondue.npjt.mapper.ParameterConverter;
 
 public class EnumMapper extends ColumnMapper {
 	
@@ -49,7 +47,7 @@ public class EnumMapper extends ColumnMapper {
 	public static class Converter implements ParameterConverter {
 
 		@Override
-		public boolean accept(Class<?> parameterType) {
+		public boolean accept(Class<?> parameterType, Annotation[] annotations) {
 			return parameterType.isEnum();
 		}
 
@@ -79,7 +77,7 @@ public class EnumMapper extends ColumnMapper {
 		}
 
 		@Override
-		public boolean accept(Class<?> paramType) {
+		public boolean accept(Class<?> paramType, Annotation[] annotations) {
 			return paramType.isEnum();
 		}
 

@@ -130,7 +130,7 @@ public class ConstructorAnnotationRowMapper<T> implements RowMapper<T> {
 			if (Column.class.isAssignableFrom(a.annotationType())) {
 				String name = ((Column) a).value();
 				for(ColumnMapperFactory factory : columnMapperFactories) {
-					if(factory.accept(paramType)) {
+					if(factory.accept(paramType, annotations)) {
 						return factory.build(name, paramType);
 					}
 				}
