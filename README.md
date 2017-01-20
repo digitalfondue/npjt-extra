@@ -20,14 +20,14 @@ See the Use and examples section.
 <dependency>
 	<groupId>ch.digitalfondue.npjt-extra</groupId>
 	<artifactId>npjt-extra</artifactId>
-	<version>1.1.1</version>
+	<version>1.1.2</version>
 </dependency>
 ```
 
 ### Gradle
 
 ```
-compile "ch.digitalfondue.npjt-extra:npjt-extra:1.1.1"
+compile "ch.digitalfondue.npjt-extra:npjt-extra:1.1.2"
 ```
 
 ## Use and examples
@@ -364,7 +364,7 @@ You must implement the `ch.digitalfondue.npjt.mapper.ColumnMapperFactory` interf
 
 ## Javadoc
 
- - 1.1.0 : http://digitalfondue.ch/npjt-extra/javadoc/1.1.0/
+ - http://javadoc.io/doc/ch.digitalfondue.npjt-extra/npjt-extra/
 
 ## License
 
