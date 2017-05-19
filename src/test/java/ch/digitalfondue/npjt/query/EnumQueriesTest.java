@@ -48,18 +48,23 @@ public class EnumQueriesTest {
 		EnumQueries eq = qf.from(EnumQueries.class);
 		
 		eq.createTable();
+
+		eq.insert(null);
 		
 		eq.insert(TestEnum.TEST);
 		eq.insert(TestEnum.TEST2);
-		
+
+		Assert.assertEquals(null, eq.findByNull());
 		Assert.assertEquals(TestEnum.TEST, eq.findByKey(TestEnum.TEST));
 		Assert.assertEquals(TestEnum.TEST2, eq.findByKey(TestEnum.TEST2));
 		
 		Assert.assertEquals(TestEnum.TEST, eq.findContainerByKey(TestEnum.TEST).key);
+		Assert.assertEquals(null, eq.findContainerByKeyNull().key);
 		
 		List<TestEnum> all = eq.findAll();
 		Assert.assertTrue(all.contains(TestEnum.TEST));
 		Assert.assertTrue(all.contains(TestEnum.TEST2));
+		Assert.assertTrue(all.contains(null));
 	}
 	
 	public enum TestEnum {
@@ -76,7 +81,7 @@ public class EnumQueriesTest {
 	
 	public interface EnumQueries {
 
-		@Query("CREATE TABLE LA_CONF_ENUM (CONF_KEY VARCHAR(64) PRIMARY KEY NOT NULL)")
+		@Query("CREATE TABLE LA_CONF_ENUM (CONF_KEY VARCHAR(64))")
 		void createTable();
 		
 		@Query("INSERT INTO LA_CONF_ENUM (CONF_KEY) VALUES (:key)")
@@ -85,9 +90,15 @@ public class EnumQueriesTest {
 		//most useless method ever :D
 		@Query("SELECT CONF_KEY FROM LA_CONF_ENUM WHERE CONF_KEY = :key")
 		TestEnum findByKey(@Bind("key") TestEnum test);
+
+		@Query("SELECT CONF_KEY FROM LA_CONF_ENUM WHERE CONF_KEY is null")
+		TestEnum findByNull();
 		
 		@Query("SELECT CONF_KEY FROM LA_CONF_ENUM WHERE CONF_KEY = :key")
 		EnumContainer findContainerByKey(@Bind("key") TestEnum test);
+
+		@Query("SELECT CONF_KEY FROM LA_CONF_ENUM WHERE CONF_KEY is null")
+		EnumContainer findContainerByKeyNull();
 		
 		@Query("SELECT CONF_KEY FROM LA_CONF_ENUM")
 		List<TestEnum> findAll();

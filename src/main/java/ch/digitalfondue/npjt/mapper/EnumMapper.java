@@ -53,7 +53,7 @@ public class EnumMapper extends ColumnMapper {
 
 		@Override
 		public void processParameter(String parameterName, Object arg, Class<?> parameterType, MapSqlParameterSource ps) {
-			ps.addValue(parameterName, ((Enum<?>)arg).name());
+			ps.addValue(parameterName, arg == null ? null : ((Enum<?>)arg).name());
 		}
 
 		@Override
