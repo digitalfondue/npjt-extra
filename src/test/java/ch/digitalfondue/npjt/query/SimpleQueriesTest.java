@@ -91,6 +91,8 @@ public class SimpleQueriesTest {
 		Assert.assertEquals("MY_VALUE_UPDATED", mq.findOptionalWrappedValueForKey("MY_KEY").get().value);
 		
 		Assert.assertFalse(mq.findOptionalWrappedValueForKey("MY_KEY_NOT").isPresent());
+
+		Assert.assertEquals("defaultMethod", mq.defaultMethod());
 	}
 
 	public static class Conf {
@@ -156,9 +158,9 @@ public class SimpleQueriesTest {
 		NamedParameterJdbcTemplate getNamedParameterJdbcTemplate();
 		
 		//Is there any IDE that is able to interpret correctly <source>1.7</source> + <testSource>1.8</testSource> ? 
-		//default String defaultMethod() {
-		//	return "defaultMethod";
-		//}
+		default String defaultMethod() {
+			return "defaultMethod";
+		}
 	}
 
 }
