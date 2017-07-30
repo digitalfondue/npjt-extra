@@ -21,14 +21,14 @@ See the Use and examples section.
 <dependency>
 	<groupId>ch.digitalfondue.npjt-extra</groupId>
 	<artifactId>npjt-extra</artifactId>
-	<version>1.1.3</version>
+	<version>1.1.4</version>
 </dependency>
 ```
 
 ### Gradle
 
 ```
-compile "ch.digitalfondue.npjt-extra:npjt-extra:1.1.3"
+compile "ch.digitalfondue.npjt-extra:npjt-extra:1.1.4"
 ```
 
 ## Use and examples
