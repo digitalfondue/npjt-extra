@@ -93,6 +93,10 @@ public class DateTimeQueriesTest {
 	private static LocalDateTime truncateToSec(LocalDateTime localDateTime) {
 		return localDateTime.truncatedTo(ChronoUnit.SECONDS);
 	}
+
+	private static ZonedDateTime truncateToSec(ZonedDateTime zonedDateTime) {
+		return zonedDateTime.truncatedTo(ChronoUnit.SECONDS);
+	}
 	
 	private void check(DateQueries dq, String key, LocalDate now) {
 		Assert.assertEquals(now, dq.findByKey(key).valueLocalDate);
@@ -100,8 +104,8 @@ public class DateTimeQueriesTest {
 	}
 
 	private void check(DateQueries dq, String key, ZonedDateTime now) {
-		Assert.assertEquals(now, dq.findByKey(key).value);
-		Assert.assertEquals(now, dq.findDateByKey(key));
+		Assert.assertEquals(truncateToSec(now), truncateToSec(dq.findByKey(key).value));
+		Assert.assertEquals(truncateToSec(now), truncateToSec(dq.findDateByKey(key)));
 		Assert.assertEquals(now.toLocalDate(), dq.findByKey(key).valueLocalDate);
 		Assert.assertEquals(truncateToSec(now.toLocalDateTime()), truncateToSec(dq.findByKey(key).valueLocalDateTime));
 	}
