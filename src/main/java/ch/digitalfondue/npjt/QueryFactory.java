@@ -15,7 +15,9 @@
  */
 package ch.digitalfondue.npjt;
 
+import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -200,9 +202,13 @@ public class QueryFactory {
 	
 	static {
 		try {
-			LOOKUP_CONSTRUCTOR = MethodHandles.Lookup.class.getDeclaredConstructor(Class.class, int.class);
-			if (!LOOKUP_CONSTRUCTOR.isAccessible()) {
-				LOOKUP_CONSTRUCTOR.setAccessible(true);
+			if(PRIVATE_LOOKUP_IN == null) {
+				LOOKUP_CONSTRUCTOR = MethodHandles.Lookup.class.getDeclaredConstructor(Class.class, int.class);
+				if (!LOOKUP_CONSTRUCTOR.isAccessible()) {
+					LOOKUP_CONSTRUCTOR.setAccessible(true);
+				}
+			} else {
+				LOOKUP_CONSTRUCTOR = null;
 			}
 		} catch (NoSuchMethodException | SecurityException e) {
 			throw new IllegalStateException(e);
@@ -225,15 +231,14 @@ public class QueryFactory {
 							return jdbc;
 						} else if(IS_DEFAULT_METHOD != null && (boolean) IS_DEFAULT_METHOD.invoke(method)) {
 							final Class<?> declaringClass = method.getDeclaringClass();
-							final MethodHandles.Lookup lookup;
+							final MethodHandle handle;
 							if(PRIVATE_LOOKUP_IN != null) {
-								int lookupModule = MethodHandles.Lookup.PACKAGE << 1;//as defined in jdk9: public static final int MODULE = PACKAGE << 1;
-								MethodHandles.Lookup unprivileged = LOOKUP_CONSTRUCTOR.newInstance(declaringClass, MethodHandles.Lookup.PRIVATE | lookupModule);
-								lookup = ((MethodHandles.Lookup) PRIVATE_LOOKUP_IN.invoke(null, declaringClass, unprivileged));
+								MethodType methodType = MethodType.methodType(method.getReturnType(), method.getParameterTypes());
+								handle = MethodHandles.lookup().findSpecial(declaringClass, method.getName(), methodType, declaringClass);
 							} else {
-								lookup = LOOKUP_CONSTRUCTOR.newInstance(declaringClass, MethodHandles.Lookup.PRIVATE);
+								handle = LOOKUP_CONSTRUCTOR.newInstance(declaringClass, MethodHandles.Lookup.PRIVATE).unreflectSpecial(method, declaringClass);
 							}
-							return lookup.unreflectSpecial(method, declaringClass).bindTo(proxy).invokeWithArguments(args);
+							return handle.bindTo(proxy).invokeWithArguments(args);
 						} else {
 							throw new IllegalArgumentException(String.format("missing @Query annotation for method %s in interface %s", method.getName(),	clazz.getSimpleName()));
 						}
