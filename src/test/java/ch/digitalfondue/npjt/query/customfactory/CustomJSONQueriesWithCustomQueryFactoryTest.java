@@ -1,5 +1,5 @@
 /**
- * Copyright © 2015 digitalfondue (info@digitalfondue.ch)
+ * Copyright © 2019 digitalfondue (info@digitalfondue.ch)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ch.digitalfondue.npjt.query;
+package ch.digitalfondue.npjt.query.customfactory;
 
 import ch.digitalfondue.npjt.*;
 import ch.digitalfondue.npjt.mapper.ColumnMapper;
@@ -28,24 +28,21 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.sql.DataSource;
 import java.lang.annotation.*;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Transactional
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = {TestJdbcConfiguration.class,
-        CustomJSONQueriesTest.ColumnMapperAndParametersConfiguration.class,
-        QueryScannerConfiguration.class})
-public class CustomJSONQueriesTest {
+@ContextConfiguration(classes = {TestJdbcConfiguration.class, CustomJSONQueriesWithCustomQueryFactoryTest.CustomQueryFactoryConf.class})
+public class CustomJSONQueriesWithCustomQueryFactoryTest {
 
     @Autowired
     JsonQueries jq;
@@ -122,16 +119,33 @@ public class CustomJSONQueriesTest {
         }
     }
 
-    public static class ColumnMapperAndParametersConfiguration {
+    @EnableNpjt(queryFactory = CustomQueryFactory.class, basePackages = {"ch.digitalfondue.npjt.query.customfactory"})
+    public static class CustomQueryFactoryConf {
 
         @Bean
-        List<ColumnMapperFactory> getColumnMapper() {
-            return Arrays.asList(new JsonColumnMapperFactory());
+        public NamedParameterJdbcTemplate getNamedParameterJdbcTemplate(DataSource dataSource) {
+            return new NamedParameterJdbcTemplate(dataSource);
+        }
+    }
+
+    public static class CustomQueryFactory<T> extends QueryFactory<T> {
+
+        public CustomQueryFactory(Class<T> targetInterface, String activeDB) {
+            super(targetInterface, activeDB);
         }
 
-        @Bean
-        List<ParameterConverter> getParameterConverter() {
-            return Arrays.asList(new JsonParameterConverter());
+        @Override
+        public List<ColumnMapperFactory> getDefaultFactories() {
+            List<ColumnMapperFactory> a = super.getDefaultFactories();
+            a.add(new JsonColumnMapperFactory());
+            return a;
+        }
+
+        @Override
+        public List<ParameterConverter> getDefaultParameterConverters() {
+            List<ParameterConverter> a = super.getDefaultParameterConverters();
+            a.add(new JsonParameterConverter());
+            return a;
         }
     }
 
@@ -166,16 +180,16 @@ public class CustomJSONQueriesTest {
 
     @QueryRepository
     public interface JsonQueries {
-        @Query("CREATE TABLE LA_CONF_JSON (CONF_KEY VARCHAR(64) PRIMARY KEY NOT NULL, CONF_JSON CLOB NOT NULL)")
+        @Query("CREATE TABLE LA_CONF_JSON2 (CONF_KEY VARCHAR(64) PRIMARY KEY NOT NULL, CONF_JSON CLOB NOT NULL)")
         void createTable();
 
-        @Query("INSERT INTO LA_CONF_JSON(CONF_KEY, CONF_JSON) VALUES(:key, :confJson)")
-        int insertValue(@Bind("key") String key,  @Bind("confJson") @AsJson Map<String, String> conf);
+        @Query("INSERT INTO LA_CONF_JSON2(CONF_KEY, CONF_JSON) VALUES(:key, :confJson)")
+        int insertValue(@Bind("key") String key, @Bind("confJson") @AsJson Map<String, String> conf);
 
-        @Query("SELECT * FROM LA_CONF_JSON WHERE CONF_KEY = :key")
+        @Query("SELECT * FROM LA_CONF_JSON2 WHERE CONF_KEY = :key")
         JsonConf findByKey(@Bind("key") String key);
 
-        @Query("SELECT CONF_JSON FROM LA_CONF_JSON WHERE CONF_KEY = :key")
+        @Query("SELECT CONF_JSON FROM LA_CONF_JSON2 WHERE CONF_KEY = :key")
         @AsJson
         Map<String, String> findConfBoolByKey(@Bind("key") String key);
     }

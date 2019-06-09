@@ -35,35 +35,26 @@ public class QueryFactory<T> implements FactoryBean<T> {
     private final Class<T> targetInterface;
     private final String activeDB;
 
-    private NamedParameterJdbcTemplate jdbc;
-
-    private final SortedSet<ColumnMapperFactory> columnMapperFactories = new TreeSet<>(Comparator.comparingInt(ColumnMapperFactory::order));
-    private final SortedSet<ParameterConverter> parameterConverters = new TreeSet<>(Comparator.comparingInt(ParameterConverter::order));
+    private DataSource dataSource;
+    private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+    private List<ColumnMapperFactory> additionalColumnMapperFactories;
+    private List<ParameterConverter> additionalParameterConverters;
 
     public QueryFactory(Class<T> targetInterface, String activeDB) {
         this.targetInterface = targetInterface;
         this.activeDB = activeDB;
+    }
 
-        //default mappers and converters
-        columnMapperFactories.add(new EnumMapper.Factory());
-        parameterConverters.add(new EnumMapper.Converter());
+    public List<ColumnMapperFactory> getDefaultFactories() {
+        return new ArrayList<>(Arrays.asList(new DefaultMapper.Factory(), new EnumMapper.Factory(),
+                new LocalDateMapper.Factory(), new LocalDateTimeMapper.Factory(),
+                new InstantMapper.Factory(), new ZonedDateTimeMapper.Factory()));
+    }
 
-        columnMapperFactories.add(new DefaultMapper.Factory());
-        parameterConverters.add(new DefaultMapper.Converter());
-
-        // add support for LocalDateTime, LocalDate and Instant
-        columnMapperFactories.add(new LocalDateMapper.Factory());
-        parameterConverters.add(new LocalDateMapper.Converter());
-
-        columnMapperFactories.add(new LocalDateTimeMapper.Factory());
-        parameterConverters.add(new LocalDateTimeMapper.Converter());
-
-        columnMapperFactories.add(new InstantMapper.Factory());
-        parameterConverters.add(new InstantMapper.Converter());
-
-        columnMapperFactories.add(new ZonedDateTimeMapper.Factory());
-        parameterConverters.add(new ZonedDateTimeMapper.Converter());
-
+    public List<ParameterConverter> getDefaultParameterConverters() {
+        return new ArrayList<>(Arrays.asList(new DefaultMapper.Converter(), new EnumMapper.Converter(),
+                new LocalDateMapper.Converter(), new LocalDateTimeMapper.Converter(),
+                new InstantMapper.Converter(), new ZonedDateTimeMapper.Converter()));
     }
 
     @Override
@@ -80,20 +71,23 @@ public class QueryFactory<T> implements FactoryBean<T> {
     //
     @Autowired
     public void setDataSource(DataSource dataSource) {
-        this.jdbc = new NamedParameterJdbcTemplate(dataSource);
+        this.dataSource = dataSource;
+    }
+
+    @Autowired(required = false)
+    public void setJdbc(NamedParameterJdbcTemplate namedParameterJdbcTemplate) {
+        this.namedParameterJdbcTemplate = namedParameterJdbcTemplate;
     }
 
     @Autowired(required = false)
     public void setAdditionalColumnMapperFactories(List<ColumnMapperFactory> additionalColumnMapperFactories) {
-        this.columnMapperFactories.addAll(additionalColumnMapperFactories);
+        this.additionalColumnMapperFactories = additionalColumnMapperFactories;
     }
 
     @Autowired(required = false)
     public void setAdditionalParameterConverters(List<ParameterConverter> additionalParameterConverters) {
-        this.parameterConverters.addAll(additionalParameterConverters);
+        this.additionalParameterConverters = additionalParameterConverters;
     }
-
-
     //
 
     private static class QueryTypeAndQuery {
@@ -150,6 +144,20 @@ public class QueryFactory<T> implements FactoryBean<T> {
 
     @SuppressWarnings("unchecked")
     public <T> T from(final Class<T> clazz) {
+
+        SortedSet<ColumnMapperFactory> columnMapperFactories = new TreeSet<>(Comparator.comparingInt(ColumnMapperFactory::order));
+        columnMapperFactories.addAll(getDefaultFactories());
+        if (additionalColumnMapperFactories != null) {
+            columnMapperFactories.addAll(additionalColumnMapperFactories);
+        }
+
+        SortedSet<ParameterConverter> parameterConverters = new TreeSet<>(Comparator.comparingInt(ParameterConverter::order));
+        parameterConverters.addAll(getDefaultParameterConverters());
+        if (additionalParameterConverters != null) {
+            parameterConverters.addAll(additionalParameterConverters);
+        }
+
+        NamedParameterJdbcTemplate jdbc = namedParameterJdbcTemplate == null ? new NamedParameterJdbcTemplate(dataSource) : namedParameterJdbcTemplate;
 
         return (T) Proxy.newProxyInstance(clazz.getClassLoader(),
                 new Class[] { clazz }, (proxy, method, args) -> {

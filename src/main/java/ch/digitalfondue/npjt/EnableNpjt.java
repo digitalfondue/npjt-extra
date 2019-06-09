@@ -26,4 +26,5 @@ import java.lang.annotation.*;
 public @interface EnableNpjt {
     String activeDB() default "";
     String[] basePackages() default {};
+    Class<? extends QueryFactory> queryFactory() default QueryFactory.class;
 }
