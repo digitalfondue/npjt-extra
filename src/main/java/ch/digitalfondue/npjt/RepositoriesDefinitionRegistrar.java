@@ -52,7 +52,7 @@ public class RepositoriesDefinitionRegistrar implements ImportBeanDefinitionRegi
         try {
             for (BeanDefinition beanDefinition : candidates) {
                 Class<?> c = Class.forName(beanDefinition.getBeanClassName());
-                AbstractBeanDefinition abd = BeanDefinitionBuilder.rootBeanDefinition(QueryFactory2.class)
+                AbstractBeanDefinition abd = BeanDefinitionBuilder.rootBeanDefinition(QueryFactory.class)
                         .addConstructorArgValue(c)
                         .addConstructorArgValue(activeDB)
                         .getBeanDefinition();

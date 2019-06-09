@@ -54,8 +54,8 @@ public enum QueryType {
 	TEMPLATE {
 		@Override
 		String apply(String template, Class<?> rowMapper, NamedParameterJdbcTemplate jdbc, 
-				Method method, Object[] args, 
-				Collection<ColumnMapperFactory> columnMapperFactories, Collection<ParameterConverter> parameterConverters) {
+				Method method, Object[] args,
+				SortedSet<ColumnMapperFactory> columnMapperFactories, SortedSet<ParameterConverter> parameterConverters) {
 			return template;
 		}
 	},
@@ -75,9 +75,9 @@ public enum QueryType {
 		private final Map<Class<Object>, HasRowmapper> cachedClassToMapper = new ConcurrentHashMap<>();
 
 		@Override
-		Object apply(String template, Class<?> rowMapper, NamedParameterJdbcTemplate jdbc, 
-				Method method, Object[] args, 
-				Collection<ColumnMapperFactory> columnMapperFactories, Collection<ParameterConverter> parameterConverters) {
+		Object apply(String template, Class<?> rowMapper, NamedParameterJdbcTemplate jdbc,
+					 Method method, Object[] args,
+					 SortedSet<ColumnMapperFactory> columnMapperFactories, SortedSet<ParameterConverter> parameterConverters) {
 			JdbcAction action = actionFromContext(method, template);
 			SqlParameterSource parameters = extractParameters(method, args, parameterConverters);
 			switch (action) {
@@ -96,7 +96,7 @@ public enum QueryType {
 		@SuppressWarnings("unchecked")
 		private Object doQuery(String template, Class<?> rowMapper,
 				NamedParameterJdbcTemplate jdbc, Method method,
-				SqlParameterSource parameters, Collection<ColumnMapperFactory> columnMapperFactories) {
+				SqlParameterSource parameters, SortedSet<ColumnMapperFactory> columnMapperFactories) {
 			boolean isReturnOptional = isReturnOptional(method);
 			if (method.getReturnType().isAssignableFrom(List.class) || isReturnOptional) {
 				Class<Object> c = extractGenericMethod(method);
@@ -117,7 +117,7 @@ public enum QueryType {
 		}
 
 		@SuppressWarnings("unchecked")
-		private HasRowmapper getRowMapper(Class<Object> c, Class<?> rowMapper, Collection<ColumnMapperFactory> columnMapperFactories) {
+		private HasRowmapper getRowMapper(Class<Object> c, Class<?> rowMapper, SortedSet<ColumnMapperFactory> columnMapperFactories) {
 			
 			if(rowMapper != ConstructorAnnotationRowMapper.class) {
 				try {
@@ -133,13 +133,12 @@ public enum QueryType {
 	};
 	
 	abstract Object apply(String template, Class<?> rowMapper, NamedParameterJdbcTemplate jdbc,
-			Method method, Object[] args, 
-			Collection<ColumnMapperFactory> columnMapperFactories,
-			Collection<ParameterConverter> parameterConverters);
+			Method method, Object[] args,
+			SortedSet<ColumnMapperFactory> columnMapperFactories, SortedSet<ParameterConverter> parameterConverters);
 	
 	private static Object handleSingleObject(String template,
 			NamedParameterJdbcTemplate jdbc, SqlParameterSource parameters,
-			Collection<ColumnMapperFactory> columnMapperFactories,
+			SortedSet<ColumnMapperFactory> columnMapperFactories,
 			Class<Object> c, HasRowmapper r, Method method) {
 		if (r.present) {
 			return jdbc.queryForObject(template, parameters, r.rowMapper);
@@ -176,7 +175,7 @@ public enum QueryType {
 		return method.getReturnType().isAssignableFrom(Optional.class);
 	}
 
-	private static RowMapper<Object> matchToOutput(Collection<ColumnMapperFactory> columnMapperFactories, Class<Object> o, Annotation[] annotations) {
+	private static RowMapper<Object> matchToOutput(SortedSet<ColumnMapperFactory> columnMapperFactories, Class<Object> o, Annotation[] annotations) {
 		
 		for(ColumnMapperFactory mapper : columnMapperFactories) {
 			if(mapper.accept(o, annotations)) {
@@ -216,7 +215,7 @@ public enum QueryType {
 
 	
 
-	private static HasRowmapper handleClass(Class<Object> c, Collection<ColumnMapperFactory> columnMapperFactories) {
+	private static HasRowmapper handleClass(Class<Object> c, SortedSet<ColumnMapperFactory> columnMapperFactories) {
 		if (ConstructorAnnotationRowMapper.hasConstructorInTheCorrectForm(c)) {
 			return new HasRowmapper(true, new ConstructorAnnotationRowMapper<>(c, columnMapperFactories));
 		} else {
@@ -224,7 +223,7 @@ public enum QueryType {
 		}
 	}
 
-	private static SqlParameterSource extractParameters(Method m, Object[] args, Collection<ParameterConverter> parameterConverters) {
+	private static SqlParameterSource extractParameters(Method m, Object[] args, SortedSet<ParameterConverter> parameterConverters) {
 
 		Annotation[][] parameterAnnotations = m.getParameterAnnotations();
 		if (parameterAnnotations == null || parameterAnnotations.length == 0) {
@@ -311,7 +310,7 @@ public enum QueryType {
 
 	private static List<Object> handleList(String template,
 			NamedParameterJdbcTemplate jdbc, SqlParameterSource parameters,
-			Collection<ColumnMapperFactory> columnMapperFactories,
+			SortedSet<ColumnMapperFactory> columnMapperFactories,
 			Class<Object> c, HasRowmapper r, Method method) {
 		if (r.present) {
 			return jdbc.query(template, parameters, r.rowMapper);
