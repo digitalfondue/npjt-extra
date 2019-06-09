@@ -129,8 +129,6 @@ public class QueryFactory<T> implements FactoryBean<T> {
     }
 
     //from https://rmannibucau.wordpress.com/2014/03/27/java-8-default-interface-methods-and-jdk-dynamic-proxies/
-
-    private static final Method IS_DEFAULT_METHOD = ReflectionUtils.findMethod(Method.class, "isDefault");
     private static final Constructor<MethodHandles.Lookup> LOOKUP_CONSTRUCTOR;
     private static final Method PRIVATE_LOOKUP_IN = ReflectionUtils.findMethod(MethodHandles.class, "privateLookupIn", Class.class, MethodHandles.Lookup.class);
 
@@ -138,7 +136,7 @@ public class QueryFactory<T> implements FactoryBean<T> {
         try {
             if(PRIVATE_LOOKUP_IN == null) {
                 LOOKUP_CONSTRUCTOR = MethodHandles.Lookup.class.getDeclaredConstructor(Class.class, int.class);
-                if (!LOOKUP_CONSTRUCTOR.isAccessible()) {
+                if (!LOOKUP_CONSTRUCTOR.isAccessible()) { //TODO: is deprecated
                     LOOKUP_CONSTRUCTOR.setAccessible(true);
                 }
             } else {
@@ -161,7 +159,7 @@ public class QueryFactory<T> implements FactoryBean<T> {
                         return qs.type.apply(qs.query, qs.rowMapperClass, jdbc, method, args, columnMapperFactories, parameterConverters);
                     } else if(method.getReturnType().equals(NamedParameterJdbcTemplate.class) && args == null) {
                         return jdbc;
-                    } else if(IS_DEFAULT_METHOD != null && (boolean) IS_DEFAULT_METHOD.invoke(method)) {
+                    } else if(method.isDefault()) {
                         final Class<?> declaringClass = method.getDeclaringClass();
                         final MethodHandle handle;
                         if(PRIVATE_LOOKUP_IN != null) {

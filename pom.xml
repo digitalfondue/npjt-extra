@@ -110,6 +110,10 @@
 					<target>1.8</target>
 					<testSource>1.8</testSource>
 					<testTarget>1.8</testTarget>
+					<compilerArgs>
+						<compilerArg>-Xlint:deprecation</compilerArg>
+						<compilerArg>-Xlint:unchecked</compilerArg>
+					</compilerArgs>
 				</configuration>
 			</plugin>
 			<!--<plugin>

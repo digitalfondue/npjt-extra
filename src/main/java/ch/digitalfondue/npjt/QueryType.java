@@ -16,6 +16,7 @@
 package ch.digitalfondue.npjt;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.util.*;
@@ -121,8 +122,8 @@ public enum QueryType {
 			
 			if(rowMapper != ConstructorAnnotationRowMapper.class) {
 				try {
-					return new HasRowmapper(true, (RowMapper<Object>) rowMapper.newInstance());
-				} catch (InstantiationException | IllegalAccessException e) {
+					return new HasRowmapper(true, (RowMapper<Object>) rowMapper.getConstructor().newInstance());
+				} catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
 					throw new IllegalArgumentException("Was not able to create a new instance of " + rowMapper + ". It require a 0 args constructor.", e);
 				}
 			} else if (!cachedClassToMapper.containsKey(c)) {
