@@ -1,5 +1,5 @@
 /**
- * Copyright © 2015 digitalfondue (info@digitalfondue.ch)
+ * Copyright © 2019 digitalfondue (info@digitalfondue.ch)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ch.digitalfondue.npjt.query.deeper;
+package ch.digitalfondue.npjt;
 
-import ch.digitalfondue.npjt.QueryRepository;
+import org.springframework.context.annotation.Import;
 
-@QueryRepository
-public interface QueryRepo2 {
+import java.lang.annotation.*;
 
+@Target(ElementType.TYPE)
+@Retention(value = RetentionPolicy.RUNTIME)
+@Inherited
+@Import(RepositoriesDefinitionRegistrar.class)
+public @interface EnableNpjt {
+    String activeDB() default "";
+    String[] basePackages() default {};
 }

@@ -1,11 +1,11 @@
 /**
- * Copyright (C) 2015 digitalfondue (info@digitalfondue.ch)
+ * Copyright © 2015 digitalfondue (info@digitalfondue.ch)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,53 +23,28 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 
-import javax.sql.DataSource;
-
+import ch.digitalfondue.npjt.*;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
-import ch.digitalfondue.npjt.Bind;
-import ch.digitalfondue.npjt.Query;
-import ch.digitalfondue.npjt.QueryFactory;
-import ch.digitalfondue.npjt.TestJdbcConfiguration;
 import ch.digitalfondue.npjt.ConstructorAnnotationRowMapper.Column;
-import ch.digitalfondue.npjt.mapper.InstantMapper;
-import ch.digitalfondue.npjt.mapper.LocalDateMapper;
-import ch.digitalfondue.npjt.mapper.LocalDateTimeMapper;
-import ch.digitalfondue.npjt.mapper.ZonedDateTimeMapper;
 
 @Transactional
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = TestJdbcConfiguration.class)
+@ContextConfiguration(classes = {TestJdbcConfiguration.class, QueryScannerConfiguration.class})
 public class DateTimeQueriesTest {
-	
+
 	@Autowired
-	DataSource dataSource;
+	DateQueries dq;
 
 	@Test
 	public void dateQueriesTest() {
-		QueryFactory qf = new QueryFactory("hsqldb", new JdbcTemplate(dataSource));
-		
-		qf.addColumnMapperFactory(new ZonedDateTimeMapper.Factory());
-		qf.addParameterConverters(new ZonedDateTimeMapper.Converter());
-		
-		qf.addColumnMapperFactory(new LocalDateMapper.Factory());
-		qf.addParameterConverters(new LocalDateMapper.Converter());
-		
-		qf.addColumnMapperFactory(new LocalDateTimeMapper.Factory());
-		qf.addParameterConverters(new LocalDateTimeMapper.Converter());
-		
-		qf.addColumnMapperFactory(new InstantMapper.Factory());
-		qf.addParameterConverters(new InstantMapper.Converter());
-		
-		DateQueries dq = qf.from(DateQueries.class);
-		
+
 		dq.createTable();
 		
 		ZonedDateTime now = ZonedDateTime.now(ZoneId.of("UTC"));
@@ -137,7 +112,8 @@ public class DateTimeQueriesTest {
 			this.value = value;
 		}
 	}
-	
+
+	@QueryRepository
 	public interface DateQueries {
 
 		@Query("CREATE TABLE LA_CONF_DATE (CONF_KEY VARCHAR(64) PRIMARY KEY NOT NULL, CONF_VALUE TIMESTAMP NOT NULL)")

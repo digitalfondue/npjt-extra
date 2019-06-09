@@ -1,11 +1,11 @@
 /**
- * Copyright (C) 2015 digitalfondue (info@digitalfondue.ch)
+ * Copyright © 2015 digitalfondue (info@digitalfondue.ch)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,27 +25,30 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.context.annotation.Bean;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.sql.DataSource;
 import java.lang.annotation.*;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 @Transactional
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = TestJdbcConfiguration.class)
+@ContextConfiguration(classes = {TestJdbcConfiguration.class,
+        CustomJSONQueriesTest.ColumnMapperAndParametersConfiguration.class,
+        QueryScannerConfiguration.class})
 public class CustomJSONQueriesTest {
 
     @Autowired
-    DataSource dataSource;
+    JsonQueries jq;
 
     private static Gson JSON = new GsonBuilder().create();
 
@@ -124,13 +127,22 @@ public class CustomJSONQueriesTest {
         }
     }
 
+    public static class ColumnMapperAndParametersConfiguration {
+
+        @Bean
+        List<ColumnMapperFactory> getColumnMapper() {
+            return Arrays.asList(new JsonColumnMapperFactory());
+        }
+
+        @Bean
+        List<ParameterConverter> getParameterConverter() {
+            return Arrays.asList(new JsonParameterConverter());
+        }
+    }
+
     @Test
     public void simpleQueriesTest() {
-        QueryFactory qf = new QueryFactory("hsqldb", new JdbcTemplate(dataSource));
-        qf.addColumnMapperFactory(new JsonColumnMapperFactory());
-        qf.addParameterConverters(new JsonParameterConverter());
 
-        JsonQueries jq = qf.from(JsonQueries.class);
 
         jq.createTable();
 
@@ -157,6 +169,7 @@ public class CustomJSONQueriesTest {
 
     }
 
+    @QueryRepository
     public interface JsonQueries {
         @Query("CREATE TABLE LA_CONF_JSON (CONF_KEY VARCHAR(64) PRIMARY KEY NOT NULL, CONF_JSON CLOB NOT NULL)")
         void createTable();

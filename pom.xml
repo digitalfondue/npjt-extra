@@ -110,12 +110,16 @@
 					<target>1.8</target>
 					<testSource>1.8</testSource>
 					<testTarget>1.8</testTarget>
+					<compilerArgs>
+						<compilerArg>-Xlint:deprecation</compilerArg>
+						<compilerArg>-Xlint:unchecked</compilerArg>
+					</compilerArgs>
 				</configuration>
 			</plugin>
-			<plugin>
+			<!--<plugin>
 				<groupId>com.mycila</groupId>
 				<artifactId>license-maven-plugin</artifactId>
-				<version>2.7</version>
+				<version>3.0</version>
 				<configuration>
 					<header>com/mycila/maven/plugin/license/templates/APACHE-2.txt</header>
 					<includes>
@@ -133,7 +137,7 @@
 						</goals>
 					</execution>
 				</executions>
-			</plugin>
+			</plugin>-->
 			<plugin>
 				<groupId>org.eluder.coveralls</groupId>
 				<artifactId>coveralls-maven-plugin</artifactId>

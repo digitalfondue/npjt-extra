@@ -1,11 +1,11 @@
 /**
- * Copyright (C) 2015 digitalfondue (info@digitalfondue.ch)
+ * Copyright © 2015 digitalfondue (info@digitalfondue.ch)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -38,17 +38,16 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
-import ch.digitalfondue.npjt.QueriesOverride;
-import ch.digitalfondue.npjt.Query;
-import ch.digitalfondue.npjt.QueryFactory;
-import ch.digitalfondue.npjt.QueryOverride;
-import ch.digitalfondue.npjt.QueryType;
+import javax.sql.DataSource;
 
 @RunWith(MockitoJUnitRunner.class)
 public class QueryFactoryTest {
 
 	@Mock
 	NamedParameterJdbcTemplate jdbc;
+
+	@Mock
+	DataSource dataSource;
 
 	public interface QueryTest {
 		@Query(type = QueryType.TEMPLATE, value = "SELECT * FROM LA_BOARD_COLUMN_FULL WHERE BOARD_COLUMN_ID = :columnId")
@@ -61,21 +60,25 @@ public class QueryFactoryTest {
 
 	@Test
 	public void testSimpleAnnotationQuery() {
-		QueryFactory qf = new QueryFactory("HSQLDB", jdbc);
+		QueryFactory<QueryTest> qf = new QueryFactory<>(QueryTest.class, "HSQLDB");
+		qf.setDataSource(dataSource);
 
-		QueryTest qt = qf.from(QueryTest.class);
+		QueryTest qt = qf.getObject();
 
 		Assert.assertEquals("SELECT * FROM LA_BOARD_COLUMN_FULL WHERE BOARD_COLUMN_ID = :columnId", qt.findById());
 	}
 
 	@Test
 	public void testOverrideAnnotation() {
-		QueryFactory qf = new QueryFactory("HSQLDB", jdbc);
-		QueryTest qt = qf.from(QueryTest.class);
+		QueryFactory<QueryTest> qf = new QueryFactory<>(QueryTest.class, "HSQLDB");
+		qf.setDataSource(dataSource);
+		QueryTest qt = qf.getObject();
 		Assert.assertEquals("SELECT * FROM LA_BOARD_COLUMN_FULL WHERE BOARD_COLUMN_ID = :columnId", qt.overrideQuery());
 
-		QueryFactory qfMysql = new QueryFactory("MYSQL", jdbc);
-		QueryTest qtMysql = qfMysql.from(QueryTest.class);
+
+		QueryFactory<QueryTest> qfMysql = new QueryFactory<>(QueryTest.class, "MYSQL");
+		qfMysql.setDataSource(dataSource);
+		QueryTest qtMysql = qfMysql.getObject();
 		Assert.assertEquals("SELECT * FROM LA_BOARD_COLUMN_FULL_MYSQL WHERE BOARD_COLUMN_ID = :columnId", qtMysql.overrideQuery());
 	}
 
