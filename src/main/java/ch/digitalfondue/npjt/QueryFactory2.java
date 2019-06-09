@@ -15,21 +15,23 @@
  */
 package ch.digitalfondue.npjt;
 
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
+import ch.digitalfondue.npjt.mapper.ColumnMapperFactory;
+import ch.digitalfondue.npjt.mapper.ParameterConverter;
 import org.springframework.beans.factory.FactoryBean;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.sql.DataSource;
+import java.util.List;
 
-public class QueryFactory2<T> implements FactoryBean<T>, BeanFactoryAware, InitializingBean {
+public class QueryFactory2<T> implements FactoryBean<T> {
 
     private final Class<T> targetInterface;
     private final String activeDB;
 
+
     private DataSource dataSource;
+    private List<ColumnMapperFactory> additionalColumnMapperFactories;
+    private List<ParameterConverter> additionalParameterConverters;
 
     public QueryFactory2(Class<T> targetInterface, String activeDB) {
         this.targetInterface = targetInterface;
@@ -38,7 +40,17 @@ public class QueryFactory2<T> implements FactoryBean<T>, BeanFactoryAware, Initi
 
     @Override
     public T getObject() {
-        return new QueryFactory(activeDB, dataSource).from(targetInterface);
+        QueryFactory qf = new QueryFactory(activeDB, dataSource);
+
+        if (additionalColumnMapperFactories != null) {
+            additionalColumnMapperFactories.forEach(qf::addColumnMapperFactory);
+        }
+
+        if (additionalParameterConverters != null) {
+            additionalParameterConverters.forEach(qf::addParameterConverters);
+        }
+
+        return qf.from(targetInterface);
     }
 
     @Override
@@ -53,15 +65,13 @@ public class QueryFactory2<T> implements FactoryBean<T>, BeanFactoryAware, Initi
         this.dataSource = dataSource;
     }
 
-
-    @Override
-    public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-        System.err.println("set factory bean");
+    @Autowired(required = false)
+    public void setAdditionalColumnMapperFactories(List<ColumnMapperFactory> additionalColumnMapperFactories) {
+        this.additionalColumnMapperFactories = additionalColumnMapperFactories;
     }
 
-    @Override
-    public void afterPropertiesSet() throws Exception {
-        System.err.println("after property set");
-        System.err.println("Data source is" + dataSource);
+    @Autowired(required = false)
+    public void setAdditionalParameterConverters(List<ParameterConverter> additionalParameterConverters) {
+        this.additionalParameterConverters = additionalParameterConverters;
     }
 }
