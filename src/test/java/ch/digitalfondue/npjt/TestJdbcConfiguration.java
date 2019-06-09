@@ -21,6 +21,8 @@ import javax.sql.DataSource;
 
 import org.hsqldb.jdbc.JDBCDataSourceFactory;
 import org.springframework.context.annotation.Bean;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.transaction.PlatformTransactionManager;
 
 public class TestJdbcConfiguration {
 
@@ -31,5 +33,10 @@ public class TestJdbcConfiguration {
 		prop.put("user", "sa");
 		prop.put("password", "");
 		return JDBCDataSourceFactory.createDataSource(prop);
+	}
+
+	@Bean
+	public PlatformTransactionManager getPlatfomrTransactionManager(DataSource dataSource) {
+		return new DataSourceTransactionManager(dataSource);
 	}
 }

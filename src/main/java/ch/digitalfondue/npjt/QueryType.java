@@ -13,32 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/**
- * This file is part of alf.io.
- *
- * alf.io is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * alf.io is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with alf.io.  If not, see <http://www.gnu.org/licenses/>.
- */
 package ch.digitalfondue.npjt;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
-import java.util.Collection;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
@@ -49,9 +29,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
-import org.springframework.util.ClassUtils;
 import org.springframework.util.NumberUtils;
-import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 
 import ch.digitalfondue.npjt.mapper.ColumnMapperFactory;
@@ -185,32 +163,19 @@ public enum QueryType {
 		if (res.size() > 1) {
 			throw new IncorrectResultSizeDataAccessException(1, res.size());
 		}
-		
-		try {
-			Class<?> clazz = Class.forName("java.util.Optional");
-			if(res.isEmpty()) {
-				return ReflectionUtils.invokeMethod(ReflectionUtils.findMethod(clazz, "empty"), null);
-			} else {
-				return ReflectionUtils.invokeMethod(ReflectionUtils.findMethod(clazz, "ofNullable", Object.class), null, res.iterator().next());				
-			}
-		} catch (ClassNotFoundException e) {
-			throw new IllegalStateException(e);
+
+		if(res.isEmpty()) {
+			return Optional.empty();
+		} else {
+			return Optional.ofNullable(res.iterator().next());
 		}
 	}
 	
 
 	private static boolean isReturnOptional(Method method) {
-		try {
-			return optionalAvailable && method.getReturnType().isAssignableFrom(Class.forName("java.util.Optional"));
-		} catch (ClassNotFoundException e) {
-			return false;
-		}
+		return method.getReturnType().isAssignableFrom(Optional.class);
 	}
-	
-	private static final boolean optionalAvailable = ClassUtils.isPresent("java.util.Optional", QueryType.class.getClassLoader());
 
-
-	
 	private static RowMapper<Object> matchToOutput(Collection<ColumnMapperFactory> columnMapperFactories, Class<Object> o, Annotation[] annotations) {
 		
 		for(ColumnMapperFactory mapper : columnMapperFactories) {
