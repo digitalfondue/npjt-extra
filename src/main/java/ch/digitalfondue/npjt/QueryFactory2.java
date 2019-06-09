@@ -20,26 +20,39 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import javax.sql.DataSource;
 
 public class QueryFactory2<T> implements FactoryBean<T>, BeanFactoryAware, InitializingBean {
 
     private final Class<T> targetInterface;
+    private final String activeDB;
 
-    public QueryFactory2(Class<T> targetInterface) {
+    private DataSource dataSource;
+
+    public QueryFactory2(Class<T> targetInterface, String activeDB) {
         this.targetInterface = targetInterface;
+        this.activeDB = activeDB;
     }
 
     @Override
-    public T getObject() throws Exception {
-        System.err.println("yooo"+targetInterface);
-        return null;
+    public T getObject() {
+        return new QueryFactory(activeDB, dataSource).from(targetInterface);
     }
 
     @Override
     public Class<T> getObjectType() {
-        System.err.println("yooo type"+targetInterface);
         return targetInterface;
     }
+
+
+    //
+    @Autowired
+    public void setDataSource(DataSource dataSource) {
+        this.dataSource = dataSource;
+    }
+
 
     @Override
     public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
@@ -49,5 +62,6 @@ public class QueryFactory2<T> implements FactoryBean<T>, BeanFactoryAware, Initi
     @Override
     public void afterPropertiesSet() throws Exception {
         System.err.println("after property set");
+        System.err.println("Data source is" + dataSource);
     }
 }

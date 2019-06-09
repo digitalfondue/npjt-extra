@@ -24,5 +24,6 @@ import java.lang.annotation.*;
 @Inherited
 @Import(RepositoriesDefinitionRegistrar.class)
 public @interface EnableNpjt {
+    String activeDB() default "";
     String[] basePackages() default {};
 }

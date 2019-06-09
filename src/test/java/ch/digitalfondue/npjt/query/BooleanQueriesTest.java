@@ -15,36 +15,27 @@
  */
 package ch.digitalfondue.npjt.query;
 
-import javax.sql.DataSource;
-
+import ch.digitalfondue.npjt.*;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
-import ch.digitalfondue.npjt.Bind;
-import ch.digitalfondue.npjt.Query;
-import ch.digitalfondue.npjt.QueryFactory;
-import ch.digitalfondue.npjt.TestJdbcConfiguration;
 import ch.digitalfondue.npjt.ConstructorAnnotationRowMapper.Column;
 
 @Transactional
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = TestJdbcConfiguration.class)
+@ContextConfiguration(classes = {TestJdbcConfiguration.class, QueryScannerConfiguration.class})
 public class BooleanQueriesTest {
 
 	@Autowired
-	DataSource dataSource;
+	BoolQueries bq;
 
 	@Test
 	public void simpleQueriesTest() {
-		QueryFactory qf = new QueryFactory("hsqldb", new JdbcTemplate(dataSource));
-
-		BoolQueries bq = qf.from(BoolQueries.class);
 
 		bq.createTable();
 
@@ -86,6 +77,7 @@ public class BooleanQueriesTest {
 
 	}
 
+	@QueryRepository
 	public interface BoolQueries {
 		@Query("CREATE TABLE LA_CONF_BOOL (CONF_KEY VARCHAR(64) PRIMARY KEY NOT NULL, CONF_BOOL BOOLEAN NOT NULL, CONF_STR VARCHAR(255) NOT NULL, CONF_INT INTEGER NOT NULL)")
 		void createTable();

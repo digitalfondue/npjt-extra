@@ -20,8 +20,7 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
-import javax.sql.DataSource;
-
+import ch.digitalfondue.npjt.*;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -32,29 +31,21 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
-import ch.digitalfondue.npjt.Bind;
-import ch.digitalfondue.npjt.Query;
-import ch.digitalfondue.npjt.QueryFactory;
-import ch.digitalfondue.npjt.QueryType;
-import ch.digitalfondue.npjt.TestJdbcConfiguration;
 import ch.digitalfondue.npjt.ConstructorAnnotationRowMapper.Column;
 
 @Transactional
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = TestJdbcConfiguration.class)
+@ContextConfiguration(classes = {TestJdbcConfiguration.class, QueryScannerConfiguration.class})
 public class SimpleQueriesTest {
 
 	@Autowired
-	DataSource dataSource;
+	MySimpleQueries mq;
 
 	/**
 	 * Simple DB interaction.
 	 */
 	@Test
 	public void simpleQueriesTest() {
-		QueryFactory qf = new QueryFactory("hsqldb", dataSource);
-
-		MySimpleQueries mq = qf.from(MySimpleQueries.class);
 
 		mq.createTable();
 
@@ -123,6 +114,7 @@ public class SimpleQueriesTest {
 		
 	}
 
+	@QueryRepository
 	public interface MySimpleQueries {
 
 		@Query("CREATE TABLE LA_CONF (CONF_KEY VARCHAR(64) PRIMARY KEY NOT NULL, CONF_VALUE CLOB NOT NULL)")
@@ -157,7 +149,6 @@ public class SimpleQueriesTest {
 		
 		NamedParameterJdbcTemplate getNamedParameterJdbcTemplate();
 		
-		//Is there any IDE that is able to interpret correctly <source>1.7</source> + <testSource>1.8</testSource> ? 
 		default String defaultMethod() {
 			return "defaultMethod";
 		}

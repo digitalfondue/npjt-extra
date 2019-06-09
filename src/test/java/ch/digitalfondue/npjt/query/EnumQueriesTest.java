@@ -17,36 +17,27 @@ package ch.digitalfondue.npjt.query;
 
 import java.util.List;
 
-import javax.sql.DataSource;
-
+import ch.digitalfondue.npjt.*;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
-import ch.digitalfondue.npjt.Bind;
-import ch.digitalfondue.npjt.Query;
-import ch.digitalfondue.npjt.QueryFactory;
-import ch.digitalfondue.npjt.TestJdbcConfiguration;
 import ch.digitalfondue.npjt.ConstructorAnnotationRowMapper.Column;
 
 @Transactional
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = TestJdbcConfiguration.class)
+@ContextConfiguration(classes = {TestJdbcConfiguration.class, QueryScannerConfiguration.class})
 public class EnumQueriesTest {
 
 	@Autowired
-	DataSource dataSource;
+	EnumQueries eq;
 
 	@Test
 	public void enumQueriesTest() {
-		QueryFactory qf = new QueryFactory("hsqldb", new JdbcTemplate(dataSource));
-		EnumQueries eq = qf.from(EnumQueries.class);
-		
 		eq.createTable();
 
 		eq.insert(null);
@@ -78,7 +69,8 @@ public class EnumQueriesTest {
 			this.key = key;
 		}
 	}
-	
+
+	@QueryRepository
 	public interface EnumQueries {
 
 		@Query("CREATE TABLE LA_CONF_ENUM (CONF_KEY VARCHAR(64))")

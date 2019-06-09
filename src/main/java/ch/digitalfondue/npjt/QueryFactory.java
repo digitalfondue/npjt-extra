@@ -29,39 +29,19 @@ import java.util.TreeSet;
 
 import javax.sql.DataSource;
 
+import ch.digitalfondue.npjt.mapper.*;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
-
-import ch.digitalfondue.npjt.mapper.ColumnMapperFactory;
-import ch.digitalfondue.npjt.mapper.DefaultMapper;
-import ch.digitalfondue.npjt.mapper.EnumMapper;
-import ch.digitalfondue.npjt.mapper.InstantMapper;
-import ch.digitalfondue.npjt.mapper.LocalDateMapper;
-import ch.digitalfondue.npjt.mapper.LocalDateTimeMapper;
-import ch.digitalfondue.npjt.mapper.ParameterConverter;
 
 
 public class QueryFactory {
-	
-	private static final boolean localDateTimeAvailable = ClassUtils.isPresent("java.time.LocalDateTime", QueryFactory.class.getClassLoader());
-	
+
 	private final String activeDb;
 	private final NamedParameterJdbcTemplate jdbc;
-	private final ClassReferencedSortedSet<ColumnMapperFactory> columnMapperFactories = new ClassReferencedSortedSet<>(new Comparator<ColumnMapperFactory>() {
-		@Override
-		public int compare(ColumnMapperFactory o1, ColumnMapperFactory o2) {
-			return Integer.compare(o1.order(), o2.order());
-		}
-	});
-	private final ClassReferencedSortedSet<ParameterConverter> parameterConverters = new ClassReferencedSortedSet<>(new Comparator<ParameterConverter>() {
-		@Override
-		public int compare(ParameterConverter o1, ParameterConverter o2) {
-			return Integer.compare(o1.order(), o2.order());
-		}
-	});
-	
+	private final ClassReferencedSortedSet<ColumnMapperFactory> columnMapperFactories = new ClassReferencedSortedSet<>(Comparator.comparingInt(ColumnMapperFactory::order));
+	private final ClassReferencedSortedSet<ParameterConverter> parameterConverters = new ClassReferencedSortedSet<>(Comparator.comparingInt(ParameterConverter::order));
+
 	//default mappers and converters
 	{
 		columnMapperFactories.add(new EnumMapper.Factory());
@@ -71,16 +51,17 @@ public class QueryFactory {
 		parameterConverters.add(new DefaultMapper.Converter());
 		
 		// add support for LocalDateTime, LocalDate and Instant
-		if(localDateTimeAvailable) {
-			columnMapperFactories.add(new LocalDateMapper.Factory());
-			parameterConverters.add(new LocalDateMapper.Converter());
+		columnMapperFactories.add(new LocalDateMapper.Factory());
+		parameterConverters.add(new LocalDateMapper.Converter());
 			
-			columnMapperFactories.add(new LocalDateTimeMapper.Factory());
-			parameterConverters.add(new LocalDateTimeMapper.Converter());
+		columnMapperFactories.add(new LocalDateTimeMapper.Factory());
+		parameterConverters.add(new LocalDateTimeMapper.Converter());
 			
-			columnMapperFactories.add(new InstantMapper.Factory());
-			parameterConverters.add(new InstantMapper.Converter());
-		}
+		columnMapperFactories.add(new InstantMapper.Factory());
+		parameterConverters.add(new InstantMapper.Converter());
+
+		columnMapperFactories.add(new ZonedDateTimeMapper.Factory());
+		parameterConverters.add(new ZonedDateTimeMapper.Converter());
 	}
 	
 	/* ugly solution, TODO: find a better one for handling the removal */

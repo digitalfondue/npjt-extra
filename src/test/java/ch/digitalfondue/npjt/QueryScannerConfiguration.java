@@ -15,17 +15,6 @@
  */
 package ch.digitalfondue.npjt;
 
-import javax.sql.DataSource;
-
-import org.springframework.context.annotation.Bean;
-
-//@EnableNpjt(basePackages = {"ch.digitalfondue.npjt.query", "ch.digitalfondue.npjt.columnmapper"})
+@EnableNpjt(basePackages = {"ch.digitalfondue.npjt.query", "ch.digitalfondue.npjt.columnmapper"})
 public class QueryScannerConfiguration {
-
-	@Bean
-	public QueryRepositoryScanner getScanner(DataSource dataSource) {
-		return new QueryRepositoryScanner(new QueryFactory("hsqldb", dataSource), 
-				"ch.digitalfondue.npjt.query",
-				"ch.digitalfondue.npjt.columnmapper");
-	}
 }

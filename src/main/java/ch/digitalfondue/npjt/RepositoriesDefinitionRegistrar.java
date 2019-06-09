@@ -37,22 +37,24 @@ public class RepositoriesDefinitionRegistrar implements ImportBeanDefinitionRegi
 
         Map<String, Object> annotationAttributes = annotationMetadata.getAnnotationAttributes(EnableNpjt.class.getCanonicalName());
         String[] basePackages = (String[]) annotationAttributes.get("basePackages");
+        String activeDb = (String) annotationAttributes.get("activeDB");
 
         if (basePackages != null) {
             CustomClasspathScanner scanner = new CustomClasspathScanner();
             for (String packageToScan : basePackages) {
                 Set<BeanDefinition> candidates = scanner.findCandidateComponents(packageToScan);
-                handleCandidates(candidates, beanDefinitionRegistry);
+                handleCandidates(candidates, beanDefinitionRegistry, activeDb);
             }
         }
     }
 
-    private void handleCandidates(Set<BeanDefinition> candidates, BeanDefinitionRegistry beanDefinitionRegistry) {
+    private void handleCandidates(Set<BeanDefinition> candidates, BeanDefinitionRegistry beanDefinitionRegistry, String activeDB) {
         try {
             for (BeanDefinition beanDefinition : candidates) {
                 Class<?> c = Class.forName(beanDefinition.getBeanClassName());
                 AbstractBeanDefinition abd = BeanDefinitionBuilder.rootBeanDefinition(QueryFactory2.class)
                         .addConstructorArgValue(c)
+                        .addConstructorArgValue(activeDB)
                         .getBeanDefinition();
                 beanDefinitionRegistry.registerBeanDefinition(beanDefinition.getBeanClassName(), abd);
                 //beanFactory.registerSingleton(beanDefinition.getBeanClassName(), abd);
