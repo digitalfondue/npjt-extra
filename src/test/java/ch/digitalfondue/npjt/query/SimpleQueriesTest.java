@@ -33,10 +33,15 @@ import org.springframework.transaction.annotation.Transactional;
 
 import ch.digitalfondue.npjt.ConstructorAnnotationRowMapper.Column;
 
+import javax.sql.DataSource;
+
 @Transactional
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = {TestJdbcConfiguration.class, QueryScannerConfiguration.class})
 public class SimpleQueriesTest {
+
+	@Autowired
+	DataSource dataSource;
 
 	@Autowired
 	MySimpleQueries mq;
@@ -71,8 +76,6 @@ public class SimpleQueriesTest {
 		
 		Assert.assertEquals("MY_TEMPLATE", mq.template());
 		
-		//Assert.assertEquals("defaultMethod", mq.defaultMethod());
-		
 		Assert.assertNotNull(mq.getNamedParameterJdbcTemplate());
 		
 		Assert.assertEquals("MY_VALUE_UPDATED", mq.findOptionalValueForKey("MY_KEY").get());
@@ -84,6 +87,12 @@ public class SimpleQueriesTest {
 		Assert.assertFalse(mq.findOptionalWrappedValueForKey("MY_KEY_NOT").isPresent());
 
 		Assert.assertEquals("defaultMethod", mq.defaultMethod());
+
+		//
+		MySimpleQueries mq2 = QueryFactory.from(MySimpleQueries.class, "HSQLDB", dataSource);
+
+		Assert.assertEquals(mq.findByKey("MY_KEY"), mq2.findByKey("MY_KEY"));
+		//
 	}
 
 	public static class Conf {
@@ -94,6 +103,15 @@ public class SimpleQueriesTest {
 				@Column("CONF_VALUE") String value) {
 			this.key = key;
 			this.value = value;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if(obj != null && obj instanceof Conf) {
+				Conf c2 = (Conf) obj;
+				return key.equals(c2.key) && value.equals(c2.value);
+			}
+			return false;
 		}
 	}
 	

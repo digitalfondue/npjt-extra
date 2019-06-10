@@ -57,6 +57,20 @@ public class QueryFactory<T> implements FactoryBean<T> {
                 new InstantMapper.Converter(), new ZonedDateTimeMapper.Converter()));
     }
 
+    public static <T> T from(Class<T> clazz, String activeDB, DataSource dataSource) {
+        return from(clazz, activeDB, dataSource, null, null);
+    }
+
+    public static <T> T from(Class<T> clazz, String activeDB,
+                             DataSource dataSource,
+                             List<ColumnMapperFactory> additionalColumnMappers, List<ParameterConverter> additionalParameterConverters) {
+        QueryFactory<T> qf = new QueryFactory<>(clazz, activeDB);
+        qf.setAdditionalColumnMapperFactories(additionalColumnMappers);
+        qf.setAdditionalParameterConverters(additionalParameterConverters);
+        qf.setDataSource(dataSource);
+        return qf.getObject();
+    }
+
     @Override
     public T getObject() {
         return from(targetInterface);
@@ -143,7 +157,7 @@ public class QueryFactory<T> implements FactoryBean<T> {
 
 
     @SuppressWarnings("unchecked")
-    public <T> T from(final Class<T> clazz) {
+    private <T> T from(final Class<T> clazz) {
 
         SortedSet<ColumnMapperFactory> columnMapperFactories = new TreeSet<>(Comparator.comparingInt(ColumnMapperFactory::order));
         columnMapperFactories.addAll(getDefaultFactories());
@@ -180,9 +194,7 @@ public class QueryFactory<T> implements FactoryBean<T> {
                     } else {
                         throw new IllegalArgumentException(String.format("missing @Query annotation for method %s in interface %s", method.getName(),	clazz.getSimpleName()));
                     }
-
                 }
-
         );
     }
 
