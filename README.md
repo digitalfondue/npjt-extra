@@ -30,7 +30,7 @@ See the Use and examples section.
 ### Gradle
 
 ```
-compile "ch.digitalfondue.npjt-extra:npjt-extra:1.1.5"
+compile "ch.digitalfondue.npjt-extra:npjt-extra:2.0.0"
 ```
 
 ## Use and examples
