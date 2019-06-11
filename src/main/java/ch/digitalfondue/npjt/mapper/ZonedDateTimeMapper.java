@@ -99,12 +99,9 @@ public class ZonedDateTimeMapper extends ColumnMapper {
 
 		@Override
 		public RowMapper<Object> getSingleColumnRowMapper(Class<Object> clzz) {
-			return new RowMapper<Object>() {
-				@Override
-				public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
-					Timestamp timestamp = rs.getTimestamp(1, Calendar.getInstance(UTC_TZ));
-					return toZonedDateTime(timestamp);
-				}
+			return (rs, rowNum) -> {
+				Timestamp timestamp = rs.getTimestamp(1, Calendar.getInstance(UTC_TZ));
+				return toZonedDateTime(timestamp);
 			};
 		}
 		

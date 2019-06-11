@@ -78,7 +78,7 @@ public class DefaultMapper extends ColumnMapper {
 
 		@Override
 		public RowMapper<Object> getSingleColumnRowMapper(Class<Object> clzz) {
-			return new SingleColumnRowMapper<Object>(clzz);
+			return new SingleColumnRowMapper<>(clzz);
 		}
 		
 	}

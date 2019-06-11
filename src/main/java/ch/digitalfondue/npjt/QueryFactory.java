@@ -46,15 +46,25 @@ public class QueryFactory<T> implements FactoryBean<T> {
     }
 
     public List<ColumnMapperFactory> getDefaultFactories() {
-        return new ArrayList<>(Arrays.asList(new DefaultMapper.Factory(), new EnumMapper.Factory(),
-                new LocalDateMapper.Factory(), new LocalDateTimeMapper.Factory(),
-                new InstantMapper.Factory(), new ZonedDateTimeMapper.Factory()));
+        return new ArrayList<>(Arrays.asList(
+                new DefaultMapper.Factory(),
+                new EnumMapper.Factory(),
+                new LocalDateMapper.Factory(),
+                new LocalDateTimeMapper.Factory(),
+                new InstantMapper.Factory(),
+                new ZonedDateTimeMapper.Factory())
+        );
     }
 
     public List<ParameterConverter> getDefaultParameterConverters() {
-        return new ArrayList<>(Arrays.asList(new DefaultMapper.Converter(), new EnumMapper.Converter(),
-                new LocalDateMapper.Converter(), new LocalDateTimeMapper.Converter(),
-                new InstantMapper.Converter(), new ZonedDateTimeMapper.Converter()));
+        return new ArrayList<>(Arrays.asList(
+                new DefaultMapper.Converter(),
+                new EnumMapper.Converter(),
+                new LocalDateMapper.Converter(),
+                new LocalDateTimeMapper.Converter(),
+                new InstantMapper.Converter(),
+                new ZonedDateTimeMapper.Converter())
+        );
     }
 
     public static <T> T from(Class<T> clazz, String activeDB, DataSource dataSource) {

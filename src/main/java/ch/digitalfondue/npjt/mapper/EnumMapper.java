@@ -83,12 +83,7 @@ public class EnumMapper extends ColumnMapper {
 
 		@Override
 		public RowMapper<Object> getSingleColumnRowMapper(final Class<Object> clazz) {
-			return new RowMapper<Object>() {
-				@Override
-				public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
-					return toEnum(rs.getString(1), clazz);
-				}
-			};
+			return (rs, rowNum) -> toEnum(rs.getString(1), clazz);
 		}
 	}
 }

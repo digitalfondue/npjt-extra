@@ -23,5 +23,5 @@ public interface ColumnMapperFactory {
 	ColumnMapper build(String name, Class<?> paramType);
 	int order();
 	boolean accept(Class<?> paramType, Annotation[] annotations);
-	public abstract RowMapper<Object> getSingleColumnRowMapper(Class<Object> clzz);
+	RowMapper<Object> getSingleColumnRowMapper(Class<Object> clzz);
 }

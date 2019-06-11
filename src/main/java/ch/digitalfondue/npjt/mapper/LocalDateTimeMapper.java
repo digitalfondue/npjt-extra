@@ -81,12 +81,7 @@ public class LocalDateTimeMapper extends ColumnMapper {
 
 		@Override
 		public RowMapper<Object> getSingleColumnRowMapper(Class<Object> clzz) {
-			return new RowMapper<Object>() {
-				@Override
-				public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
-					return toLocalDateTime(rs.getTimestamp(1));
-				}
-			};
+			return (rs, rowNum) -> toLocalDateTime(rs.getTimestamp(1));
 		}
 		
 	}
