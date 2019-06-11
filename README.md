@@ -4,12 +4,14 @@ npjt-extra
 [![Build Status](https://travis-ci.org/digitalfondue/npjt-extra.svg?branch=master)](https://travis-ci.org/digitalfondue/npjt-extra) [![Coverage Status](https://coveralls.io/repos/digitalfondue/npjt-extra/badge.svg?branch=master)](https://coveralls.io/r/digitalfondue/npjt-extra?branch=master)
 [![Maven Central](https://img.shields.io/maven-central/v/ch.digitalfondue.npjt-extra/npjt-extra.svg)](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22ch.digitalfondue.npjt-extra%22%20AND%20a%3A%22npjt-extra%22)
 
-A small layer over Spring's NamedParameterJdbcTemplate, it provide a similar interface as :
+A small layer over Spring's NamedParameterJdbcTemplate, it provide a similar interface as:
 
  - the jdbi object api (http://jdbi.org/sql_object_api_queries/)
  - the spring-data-jpa named parameters api (http://docs.spring.io/spring-data/jpa/docs/current/reference/html/#jpa.named-parameters)
  
-With some extra goodies.
+With some extra goodies. Requires java8 or later.
+
+Note: this project predates spring-data-jdbc.
 
 See the Use and examples section.
 
@@ -21,7 +23,7 @@ See the Use and examples section.
 <dependency>
 	<groupId>ch.digitalfondue.npjt-extra</groupId>
 	<artifactId>npjt-extra</artifactId>
-	<version>1.1.5</version>
+	<version>2.0.0</version>
 </dependency>
 ```
 
@@ -80,7 +82,7 @@ npjt-extra generate a proxy from the interface defined by the user.
 The rules are simple:
 
  - you can define a method without parameter that return NamedParameterJdbcTemplate: the proxy will return the underlying NamedParameterJdbcTemplate.
- - if you use java8: you can define default methods
+ - you can define default methods
  - all the others methods must contain the @Query(...) annotation
  
 #### Basic use
@@ -215,11 +217,9 @@ public interface QueryTest {
 
 Calling template() will return "MY_TEMPLATE" (or the overridden values).
 
-#### Java 8 support
-
 ##### Optional
 
-If you use java8, you can wrap the returned object in a Optional. For example:
+You can wrap the returned object in a Optional. For example:
 
 ```java
 @Query("SELECT * FROM LA_CONF WHERE CONF_KEY = :key")
@@ -256,20 +256,27 @@ public interface MySimpleQueries {
 
 npjt-extra support out of the box LocalDate, LocalDateTime and Instant both as a parameter of a interface method and as a mapped value.
 
-If you don't need the support, you can remove them calling `QueryFactory.removeColumnMapperFactory` and `QueryFactory.removeParameterConverter`
-with the following classes:
-
- - LocalDate: `LocalDateMapper.Factory.class` and `LocalDateMapper.Parameter.class`
- - LocalDateTime: `LocalDateTimeMapper.Factory.class` and `LocalDateTimeMapper.Parameter.class`
- - Instant: `InstantMapper.Factory.class` and `InstantMapper.Parameter.class`
-
 
 ### Configuration
 
-npjt-extra require that you configure the ch.digitalfondue.npjt.QueryFactory, then you can 
+You can configure it in 2 ways.
 
- - instantiate manually the various query repositories with ch.digitalfondue.npjt.QueryFactory.from(final Class<T> clazz);
- - scan the package(s) with ch.digitalfondue.npjt.QueryRepositoryScanner
+#### Using @EnableNpjt annotation
+
+First you need to annotate your query repository with the ch.digitalfondue.npjt.QueryRepository annotation.
+
+Note, you will need a DataSource configured.
+
+Then you only need to configure the packages to scan:
+
+```java
+
+/** scan the packages "ch.digitalfondue.npjt.query" and "ch.digitalfondue.npjt.columnmapper" */
+@EnableNpjt(basePackages = {"ch.digitalfondue.npjt.query", "ch.digitalfondue.npjt.columnmapper"})
+public class MyConfig2 {
+}
+
+```
  
 #### Manual instantiation
 
@@ -278,53 +285,19 @@ Using the JavaConfig:
 ```java
 
 public class MyConfig {
-
-
-  /** the db type could be another parameter :) */
-  @Bean
-  public QueryFactory queryFactory(DataSource dataSource) {
-    return new QueryFactory("hsqldb", dataSource);
-  }
-  
-  
+   
   /** instantiate the interface MySimpleQueries */
-  @Bean
-  public MySimpleQueries getMySimpleQueries(QueryFactory queryFactory) {
-    return queryFactory.from(MySimpleQueries.class);
-  }
-  
-}
-
-```
-
-#### Using the QueryRepositoryScanner
-
-First you need to annotate your query repository with the ch.digitalfondue.npjt.QueryRepository annotation.
-
-Then you only need to configure the packages to scan:
-
-```java
-
-public class MyConfig2 {
-
-
   /** the db type could be another parameter :) */
   @Bean
-  public QueryFactory queryFactory(DataSource dataSource) {
-    return new QueryFactory("hsqldb", dataSource);
+  public MySimpleQueries getMySimpleQueries(DataSource dataSource) {
+    return QueryFactory.from(MySimpleQueries.class, "HSQLDB", dataSource);
   }
   
-  
-  /** scan the packages "ch.digitalfondue.npjt.query" and "ch.digitalfondue.npjt.columnmapper" */
-  @Bean
-  public QueryRepositoryScanner getScanner(QueryFactory queryFactory) {
-    return new QueryRepositoryScanner(queryFactory, 
-      "ch.digitalfondue.npjt.query",
-      "ch.digitalfondue.npjt.columnmapper");
-  }
 }
 
 ```
+
+
 
 All the annotated interfaces will be available in your spring context.
 
@@ -334,21 +307,16 @@ By default, npjt-extra has the following input parameters/result set mapping fac
 
  - a default parameter/result set mapper which use the same logic as the one from the jdbctemplate
  - a enum mapper that convert from/to a string representation
- - if java 8 is enabled, it will support LocalDate, LocalDateTime and Instant
+ - support ZonedDateTimeMapper, LocalDate, LocalDateTime and Instant
 
-You can configure/alter the default configuration calling the following methods on the `QueryFactory`
+You can add new mappers by exposing as a bean a `List<ColumnMapperFactory>` and a `List<ParameterConverter>` (see example at: https://github.com/digitalfondue/npjt-extra/blob/master/src/test/java/ch/digitalfondue/npjt/query/CustomJSONQueriesTest.java#L125).
 
-For input parameters:
+If you want to configure from an empty list, you can define your custom `QueryFactory`: see full example at https://github.com/digitalfondue/npjt-extra/blob/master/src/test/java/ch/digitalfondue/npjt/query/customfactory/CustomJSONQueriesWithCustomQueryFactoryTest.java#L131 
+where instead of calling `super.getDefaultFactories();` you can begin from an empty List.
 
- - `addParameterConverters(ParameterConverter parameterConverter)`: for adding a new parameter converter
- - `removeParameterConverter(Class<? extends ParameterConverter> clazz)`: remove a specific ParameterConverter
- - `emptyParameterConverters()`: remove _all_ parameter converters (note: the query factory will not be able to map parameters correctly without at least one!)
- 
-For the result set objects:
+Then when using the @EnableNpjt you will need to specify the Factory:
 
- - `addColumnMapperFactory(ColumnMapperFactory columnMapperFactory)`: for adding a new column mapper
- - `removeColumnMapperFactory(Class<? extends ColumnMapperFactory> clazz)`: for removing a specific column mapper
- - `emptyColumnMapperFactories()`: remove _all_ column mappers note: the query factory will not be able to map parameters correctly without at least one!)
+`@EnableNpjt(queryFactory = CustomQueryFactory.class, basePackages = {"ch.digitalfondue.npjt.query.customfactory"})` 
  
 
 For both mappers, the application order is defined by the `order()` method. The smallest the `int` returned, the higher the priority.
