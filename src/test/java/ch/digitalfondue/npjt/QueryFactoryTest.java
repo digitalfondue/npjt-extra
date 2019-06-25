@@ -36,15 +36,11 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 import javax.sql.DataSource;
 
 @RunWith(MockitoJUnitRunner.class)
 public class QueryFactoryTest {
-
-	@Mock
-	NamedParameterJdbcTemplate jdbc;
 
 	@Mock
 	DataSource dataSource;

@@ -37,7 +37,6 @@ import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
 
-import ch.digitalfondue.npjt.ConstructorAnnotationRowMapper;
 import ch.digitalfondue.npjt.ConstructorAnnotationRowMapper.Column;
 import ch.digitalfondue.npjt.mapper.ColumnMapperFactory;
 import ch.digitalfondue.npjt.mapper.DefaultMapper.Factory;

@@ -22,6 +22,7 @@ import javax.sql.DataSource;
 import org.hsqldb.jdbc.JDBCDataSourceFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.transaction.PlatformTransactionManager;
 
 public class TestJdbcConfiguration {
@@ -34,6 +35,16 @@ public class TestJdbcConfiguration {
 		prop.put("password", "");
 		return JDBCDataSourceFactory.createDataSource(prop);
 	}
+
+	/*@Bean
+	DataSource getPostgresqlDataSource() {
+		DriverManagerDataSource ds = new DriverManagerDataSource();
+		ds.setDriverClassName("org.postgresql.Driver");
+		ds.setUrl("jdbc:postgresql://localhost:5432/alfio");
+		ds.setUsername("postgres");
+		ds.setPassword("password");
+		return ds;
+	}*/
 
 	@Bean
 	public PlatformTransactionManager getPlatfomrTransactionManager(DataSource dataSource) {

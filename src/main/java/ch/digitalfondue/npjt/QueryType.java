@@ -80,7 +80,7 @@ public enum QueryType {
 		Object apply(QueryTypeAndQuery queryTypeAndQuery, NamedParameterJdbcTemplate jdbc,
 					 Method method, Object[] args,
 					 SortedSet<ColumnMapperFactory> columnMapperFactories, SortedSet<ParameterConverter> parameterConverters) {
-			JdbcAction action = actionFromContext(method, queryTypeAndQuery.query);
+			JdbcAction action = actionFromContext(method, queryTypeAndQuery);
 			SqlParameterSource parameters = extractParameters(method, args, parameterConverters);
 			switch (action) {
 			case QUERY:
@@ -133,18 +133,27 @@ public enum QueryType {
 			return cachedClassToMapper.get(c);
 		}
 	},
+	/**
+	 * Specialized EXECUTE, will bypass the heuristic to determine if a query is a insert/update/delete or a select, will always treat the query as a select.
+	 */
 	SELECT {
 		@Override
 		Object apply(QueryTypeAndQuery queryTypeAndQuery, NamedParameterJdbcTemplate jdbc, Method method, Object[] args, SortedSet<ColumnMapperFactory> columnMapperFactories, SortedSet<ParameterConverter> parameterConverters) {
 			return EXECUTE.apply(queryTypeAndQuery, jdbc, method, args, columnMapperFactories, parameterConverters);
 		}
 	},
+	/**
+	 * Specialized EXECUTE, will bypass the heuristic to determine if a query is a insert/update/delete or a select, will always treat the query as a insert/update/delete.
+	 */
 	MODIFYING {
 		@Override
 		Object apply(QueryTypeAndQuery queryTypeAndQuery, NamedParameterJdbcTemplate jdbc, Method method, Object[] args, SortedSet<ColumnMapperFactory> columnMapperFactories, SortedSet<ParameterConverter> parameterConverters) {
 			return EXECUTE.apply(queryTypeAndQuery, jdbc, method, args, columnMapperFactories, parameterConverters);
 		}
 	},
+	/**
+	 * Specialized EXECUTE, will bypass the heuristic to determine if a query is a insert/update/delete or a select, will always treat the query as a select.
+	 */
 	MODIFYING_WITH_RETURN {
 		@Override
 		Object apply(QueryTypeAndQuery queryTypeAndQuery, NamedParameterJdbcTemplate jdbc, Method method, Object[] args, SortedSet<ColumnMapperFactory> columnMapperFactories, SortedSet<ParameterConverter> parameterConverters) {
@@ -205,12 +214,16 @@ public enum QueryType {
 		return null;
 	}
 
-	private static JdbcAction actionFromContext(Method method, String template) {
+	private static JdbcAction actionFromContext(Method method, QueryTypeAndQuery queryTypeAndQuery) {
 		
-		if(method.getReturnType().isAssignableFrom(AffectedRowCountAndKey.class)) {
+		if (method.getReturnType().isAssignableFrom(AffectedRowCountAndKey.class)) {
 			return JdbcAction.INSERT_W_AUTO_GENERATED_KEY;
+		} else if (queryTypeAndQuery.type == SELECT || queryTypeAndQuery.type == MODIFYING_WITH_RETURN) {
+			return JdbcAction.QUERY;
+		} else if (queryTypeAndQuery.type == MODIFYING) {
+			return JdbcAction.UPDATE;
 		} else {
-			return actionFromTemplate(template);
+			return actionFromTemplate(queryTypeAndQuery.query);
 		}		
 	}
 
