@@ -114,10 +114,10 @@ public class QueryFactory<T> implements FactoryBean<T> {
     }
     //
 
-    private static class QueryTypeAndQuery {
-        private final QueryType type;
-        private final String query;
-        private final Class<?> rowMapperClass;
+    static class QueryTypeAndQuery {
+        final QueryType type;
+        final String query;
+        final Class<?> rowMapperClass;
 
         QueryTypeAndQuery(QueryType type, String query, Class<?> rowMapperClass) {
             this.type = type;
@@ -188,7 +188,7 @@ public class QueryFactory<T> implements FactoryBean<T> {
                     boolean hasAnnotation = method.getAnnotation(Query.class) != null;
                     if(hasAnnotation) {
                         QueryTypeAndQuery qs = extractQueryAnnotation(clazz, method);
-                        return qs.type.apply(qs.query, qs.rowMapperClass, jdbc, method, args, columnMapperFactories, parameterConverters);
+                        return qs.type.apply(qs, jdbc, method, args, columnMapperFactories, parameterConverters);
                     } else if(method.getReturnType().equals(NamedParameterJdbcTemplate.class) && args == null) {
                         return jdbc;
                     } else if(method.isDefault()) {

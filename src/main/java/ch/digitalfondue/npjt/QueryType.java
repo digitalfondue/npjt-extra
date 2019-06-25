@@ -33,6 +33,7 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.util.NumberUtils;
 import org.springframework.util.StringUtils;
 
+import ch.digitalfondue.npjt.QueryFactory.QueryTypeAndQuery;
 import ch.digitalfondue.npjt.mapper.ColumnMapperFactory;
 import ch.digitalfondue.npjt.mapper.ParameterConverter;
 
@@ -54,10 +55,10 @@ public enum QueryType {
 	 */
 	TEMPLATE {
 		@Override
-		String apply(String template, Class<?> rowMapper, NamedParameterJdbcTemplate jdbc, 
+		String apply(QueryTypeAndQuery queryTypeAndQuery, NamedParameterJdbcTemplate jdbc,
 				Method method, Object[] args,
 				SortedSet<ColumnMapperFactory> columnMapperFactories, SortedSet<ParameterConverter> parameterConverters) {
-			return template;
+			return queryTypeAndQuery.query;
 		}
 	},
 
@@ -76,18 +77,18 @@ public enum QueryType {
 		private final Map<Class<Object>, HasRowmapper> cachedClassToMapper = new ConcurrentHashMap<>();
 
 		@Override
-		Object apply(String template, Class<?> rowMapper, NamedParameterJdbcTemplate jdbc,
+		Object apply(QueryTypeAndQuery queryTypeAndQuery, NamedParameterJdbcTemplate jdbc,
 					 Method method, Object[] args,
 					 SortedSet<ColumnMapperFactory> columnMapperFactories, SortedSet<ParameterConverter> parameterConverters) {
-			JdbcAction action = actionFromContext(method, template);
+			JdbcAction action = actionFromContext(method, queryTypeAndQuery.query);
 			SqlParameterSource parameters = extractParameters(method, args, parameterConverters);
 			switch (action) {
 			case QUERY:
-				return doQuery(template, rowMapper, jdbc, method, parameters, columnMapperFactories);
+				return doQuery(queryTypeAndQuery.query, queryTypeAndQuery.rowMapperClass, jdbc, method, parameters, columnMapperFactories);
 			case UPDATE:
-				return jdbc.update(template, parameters);
+				return jdbc.update(queryTypeAndQuery.query, parameters);
 			case INSERT_W_AUTO_GENERATED_KEY:
-				return executeUpdateAndKeepKeys(template, method, jdbc, parameters);
+				return executeUpdateAndKeepKeys(queryTypeAndQuery.query, method, jdbc, parameters);
 			default:
 				throw new IllegalArgumentException("unknown value for action: " + action);
 			}
@@ -131,11 +132,29 @@ public enum QueryType {
 			}
 			return cachedClassToMapper.get(c);
 		}
+	},
+	SELECT {
+		@Override
+		Object apply(QueryTypeAndQuery queryTypeAndQuery, NamedParameterJdbcTemplate jdbc, Method method, Object[] args, SortedSet<ColumnMapperFactory> columnMapperFactories, SortedSet<ParameterConverter> parameterConverters) {
+			return EXECUTE.apply(queryTypeAndQuery, jdbc, method, args, columnMapperFactories, parameterConverters);
+		}
+	},
+	MODIFYING {
+		@Override
+		Object apply(QueryTypeAndQuery queryTypeAndQuery, NamedParameterJdbcTemplate jdbc, Method method, Object[] args, SortedSet<ColumnMapperFactory> columnMapperFactories, SortedSet<ParameterConverter> parameterConverters) {
+			return EXECUTE.apply(queryTypeAndQuery, jdbc, method, args, columnMapperFactories, parameterConverters);
+		}
+	},
+	MODIFYING_WITH_RETURN {
+		@Override
+		Object apply(QueryTypeAndQuery queryTypeAndQuery, NamedParameterJdbcTemplate jdbc, Method method, Object[] args, SortedSet<ColumnMapperFactory> columnMapperFactories, SortedSet<ParameterConverter> parameterConverters) {
+			return EXECUTE.apply(queryTypeAndQuery, jdbc, method, args, columnMapperFactories, parameterConverters);
+		}
 	};
 	
-	abstract Object apply(String template, Class<?> rowMapper, NamedParameterJdbcTemplate jdbc,
-			Method method, Object[] args,
-			SortedSet<ColumnMapperFactory> columnMapperFactories, SortedSet<ParameterConverter> parameterConverters);
+	abstract Object apply(QueryTypeAndQuery queryTypeAndQuery, NamedParameterJdbcTemplate jdbc,
+						  Method method, Object[] args,
+						  SortedSet<ColumnMapperFactory> columnMapperFactories, SortedSet<ParameterConverter> parameterConverters);
 	
 	private static Object handleSingleObject(String template,
 			NamedParameterJdbcTemplate jdbc, SqlParameterSource parameters,
