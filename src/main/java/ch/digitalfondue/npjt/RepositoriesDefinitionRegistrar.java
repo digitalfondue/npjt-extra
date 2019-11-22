@@ -15,30 +15,46 @@
  */
 package ch.digitalfondue.npjt;
 
+import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.config.BeanExpressionContext;
+import org.springframework.beans.factory.config.BeanExpressionResolver;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
+import org.springframework.core.log.LogAccessor;
 import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
 
 import java.util.Map;
 import java.util.Set;
 
-@Configuration
-public class RepositoriesDefinitionRegistrar implements ImportBeanDefinitionRegistrar {
+public class RepositoriesDefinitionRegistrar implements ImportBeanDefinitionRegistrar, BeanFactoryAware {
+
+    private BeanExpressionResolver resolver;
+    private BeanExpressionContext expressionContext;
+
+    private final LogAccessor logger = new LogAccessor(LogFactory.getLog(getClass()));
 
     @Override
     public void registerBeanDefinitions(AnnotationMetadata annotationMetadata, BeanDefinitionRegistry beanDefinitionRegistry) {
-
         Map<String, Object> annotationAttributes = annotationMetadata.getAnnotationAttributes(EnableNpjt.class.getCanonicalName());
         String[] basePackages = (String[]) annotationAttributes.get("basePackages");
         String activeDb = (String) annotationAttributes.get("activeDB");
         Class<?> queryFactoryClass = (Class<?>) annotationAttributes.get("queryFactory");
+
+        if (this.resolver != null) {
+            activeDb = (String) this.resolver.evaluate(activeDb, expressionContext);
+        }
+
+        logger.info("ActiveDb is " + activeDb);
 
         if (basePackages != null) {
             CustomClasspathScanner scanner = new CustomClasspathScanner();
@@ -62,6 +78,14 @@ public class RepositoriesDefinitionRegistrar implements ImportBeanDefinitionRegi
             }
         } catch (ClassNotFoundException cnf) {
             throw new IllegalStateException("Error while loading class", cnf);
+        }
+    }
+
+    @Override
+    public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+        if (beanFactory instanceof ConfigurableListableBeanFactory) {
+            this.resolver = ((ConfigurableListableBeanFactory) beanFactory).getBeanExpressionResolver();
+            this.expressionContext = new BeanExpressionContext((ConfigurableListableBeanFactory) beanFactory, null);
         }
     }
 
