@@ -201,6 +201,14 @@ public class QueryFactory<T> implements FactoryBean<T> {
                             handle = LOOKUP_CONSTRUCTOR.newInstance(declaringClass, MethodHandles.Lookup.PRIVATE).unreflectSpecial(method, declaringClass);
                         }
                         return handle.bindTo(proxy).invokeWithArguments(args);
+                    } else if (method.getDeclaringClass().equals(Object.class)) {
+                        String name = method.getName();
+                        switch (name) {
+                            case "equals": return proxy == args[0];
+                            case "hashCode": return System.identityHashCode(proxy);
+                            case "toString": return proxy.getClass().getName() + "@" + Integer.toHexString(System.identityHashCode(proxy));
+                            default: throw new IllegalStateException(String.valueOf(method));
+                        }
                     } else {
                         throw new IllegalArgumentException(String.format("missing @Query annotation for method %s in interface %s", method.getName(),	clazz.getSimpleName()));
                     }

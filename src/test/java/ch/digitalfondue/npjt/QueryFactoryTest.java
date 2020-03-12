@@ -78,4 +78,16 @@ public class QueryFactoryTest {
 		Assert.assertEquals("SELECT * FROM LA_BOARD_COLUMN_FULL_MYSQL WHERE BOARD_COLUMN_ID = :columnId", qtMysql.overrideQuery());
 	}
 
+	@Test
+	public void testObjectCallOnProxiedInterface() {
+		QueryFactory<QueryTest> qf = new QueryFactory<>(QueryTest.class, "HSQLDB");
+		qf.setDataSource(dataSource);
+		QueryTest qt = qf.getObject();
+
+		Assert.assertTrue(qt.toString().startsWith("com.sun.proxy.$Proxy"));
+		qt.hashCode(); //<- should not fail
+		Assert.assertTrue(qt.equals(qt));
+		Assert.assertFalse(qt.equals(qf));
+	}
+
 }
