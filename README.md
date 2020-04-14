@@ -6,7 +6,7 @@ npjt-extra
 
 A small layer over Spring's NamedParameterJdbcTemplate, it provide a similar interface as:
 
- - the jdbi object api (http://jdbi.org/sql_object_api_queries/)
+ - the jdbi object api (http://jdbi.org/#__sqlquery)
  - the spring-data-jpa named parameters api (http://docs.spring.io/spring-data/jpa/docs/current/reference/html/#jpa.named-parameters)
  
 With some extra goodies. Requires java8 or later.
