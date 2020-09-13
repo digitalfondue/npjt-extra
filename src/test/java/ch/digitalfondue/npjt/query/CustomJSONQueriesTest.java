@@ -104,7 +104,7 @@ public class CustomJSONQueriesTest {
         }
     }
 
-    private static class JsonParameterConverter implements ParameterConverter {
+    private static class JsonParameterConverter implements ParameterConverter.AdvancedParameterConverter {
 
         @Override
         public boolean accept(Class<?> parameterType, Annotation[] annotations) {
@@ -112,9 +112,10 @@ public class CustomJSONQueriesTest {
         }
 
         @Override
-        public void processParameter(String parameterName, Object arg, Class<?> parameterType, MapSqlParameterSource ps) {
-            ps.addValue(parameterName, JSON.toJson(arg, parameterType));
+        public void processParameter(ProcessParameterContext ctx) {
+            ctx.getParameterSource().addValue(ctx.getParameterName(), JSON.toJson(ctx.getArg(), ctx.getParameterType()));
         }
+
 
         @Override
         public int order() {

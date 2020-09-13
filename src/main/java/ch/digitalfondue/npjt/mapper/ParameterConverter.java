@@ -26,10 +26,24 @@ public interface ParameterConverter {
 
 	boolean accept(Class<?> parameterType, Annotation[] annotations);
 
-	default void processParameter(ProcessParameterContext processParameterContext) {
-		processParameter(processParameterContext.parameterName, processParameterContext.arg, processParameterContext.parameterType, processParameterContext.ps);
+
+	interface AdvancedParameterConverter extends ParameterConverter {
+		void processParameter(ProcessParameterContext processParameterContext);
+
+		@Override
+		default void processParameter(String parameterName, Object arg, Class<?> parameterType, MapSqlParameterSource ps) {
+			throw new IllegalStateException("should not be executed");
+		}
 	}
 
+	/**
+	 *
+	 *
+	 * @param parameterName
+	 * @param arg
+	 * @param parameterType
+	 * @param ps
+	 */
 	void processParameter(String parameterName, Object arg, Class<?> parameterType, MapSqlParameterSource ps);
 	
 	int order();
