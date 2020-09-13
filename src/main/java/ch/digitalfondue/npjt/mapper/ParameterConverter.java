@@ -16,13 +16,18 @@
 package ch.digitalfondue.npjt.mapper;
 
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 import java.lang.annotation.Annotation;
 
 public interface ParameterConverter {
 
 	boolean accept(Class<?> parameterType, Annotation[] annotations);
-	
+
+	default void processParameter(String parameterName, Object arg, Class<?> parameterType, MapSqlParameterSource ps, NamedParameterJdbcTemplate jdbc) {
+		processParameter(parameterName, arg, parameterType, ps);
+	}
+
 	void processParameter(String parameterName, Object arg, Class<?> parameterType, MapSqlParameterSource ps);
 	
 	int order();

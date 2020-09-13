@@ -81,7 +81,7 @@ public enum QueryType {
 					 Method method, Object[] args,
 					 SortedSet<ColumnMapperFactory> columnMapperFactories, SortedSet<ParameterConverter> parameterConverters) {
 			JdbcAction action = actionFromContext(method, queryTypeAndQuery);
-			SqlParameterSource parameters = extractParameters(method, args, parameterConverters);
+			SqlParameterSource parameters = extractParameters(method, args, parameterConverters, jdbc);
 			switch (action) {
 			case QUERY:
 				return doQuery(queryTypeAndQuery.query, queryTypeAndQuery.rowMapperClass, jdbc, method, parameters, columnMapperFactories);
@@ -256,7 +256,7 @@ public enum QueryType {
 		}
 	}
 
-	private static SqlParameterSource extractParameters(Method m, Object[] args, SortedSet<ParameterConverter> parameterConverters) {
+	private static SqlParameterSource extractParameters(Method m, Object[] args, SortedSet<ParameterConverter> parameterConverters, NamedParameterJdbcTemplate jdbc) {
 
 		Annotation[][] parameterAnnotations = m.getParameterAnnotations();
 		if (parameterAnnotations == null || parameterAnnotations.length == 0) {
@@ -275,7 +275,7 @@ public enum QueryType {
 				for (ParameterConverter parameterConverter : parameterConverters) {
 					if (parameterConverter.accept(parameterType, parameterAnnotations[i])) {
 						hasAccepted = true;
-						parameterConverter.processParameter(name, arg, parameterType, ps);
+						parameterConverter.processParameter(name, arg, parameterType, ps, jdbc);
 						break;
 					}
 				}
