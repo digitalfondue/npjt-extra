@@ -169,13 +169,13 @@ public class QueryFactory<T> implements FactoryBean<T> {
     @SuppressWarnings("unchecked")
     private <T> T from(final Class<T> clazz) {
 
-        SortedSet<ColumnMapperFactory> columnMapperFactories = new TreeSet<>(Comparator.comparingInt(ColumnMapperFactory::order));
+        SortedSet<ColumnMapperFactory> columnMapperFactories = new TreeSet<>(Comparator.comparingInt(ColumnMapperFactory::order).thenComparing(Objects::hashCode));
         columnMapperFactories.addAll(getDefaultFactories());
         if (additionalColumnMapperFactories != null) {
             columnMapperFactories.addAll(additionalColumnMapperFactories);
         }
 
-        SortedSet<ParameterConverter> parameterConverters = new TreeSet<>(Comparator.comparingInt(ParameterConverter::order));
+        SortedSet<ParameterConverter> parameterConverters = new TreeSet<>(Comparator.comparingInt(ParameterConverter::order).thenComparing(Objects::hashCode));
         parameterConverters.addAll(getDefaultParameterConverters());
         if (additionalParameterConverters != null) {
             parameterConverters.addAll(additionalParameterConverters);

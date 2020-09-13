@@ -122,16 +122,59 @@ public class CustomJSONQueriesTest {
         }
     }
 
+    //test class to check we don't override converters with the same order
+    public static class DummyColumnMapperFactory implements ColumnMapperFactory {
+
+        @Override
+        public ColumnMapper build(String name, Class<?> paramType) {
+            return null;
+        }
+
+        @Override
+        public int order() {
+            return 0;
+        }
+
+        @Override
+        public boolean accept(Class<?> paramType, Annotation[] annotations) {
+            return false;
+        }
+
+        @Override
+        public RowMapper<Object> getSingleColumnRowMapper(Class<Object> clzz) {
+            return null;
+        }
+    }
+
+    //test class to check we don't override converters with the same order
+    public static class DummyParameterConverter implements ParameterConverter {
+
+        @Override
+        public boolean accept(Class<?> parameterType, Annotation[] annotations) {
+            return false;
+        }
+
+        @Override
+        public void processParameter(String parameterName, Object arg, Class<?> parameterType, MapSqlParameterSource ps) {
+            ps.addValue(parameterName, null);
+        }
+
+        @Override
+        public int order() {
+            return 0;
+        }
+    }
+
     public static class ColumnMapperAndParametersConfiguration {
 
         @Bean
         List<ColumnMapperFactory> getColumnMapper() {
-            return Arrays.asList(new JsonColumnMapperFactory());
+            return Arrays.asList(new DummyColumnMapperFactory(), new JsonColumnMapperFactory());
         }
 
         @Bean
         List<ParameterConverter> getParameterConverter() {
-            return Arrays.asList(new JsonParameterConverter());
+            return Arrays.asList(new DummyParameterConverter(), new JsonParameterConverter());
         }
     }
 
