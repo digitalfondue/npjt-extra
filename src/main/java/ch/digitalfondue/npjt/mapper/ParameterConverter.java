@@ -17,18 +17,66 @@ package ch.digitalfondue.npjt.mapper;
 
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.datasource.DataSourceUtils;
 
 import java.lang.annotation.Annotation;
+import java.sql.Connection;
 
 public interface ParameterConverter {
 
 	boolean accept(Class<?> parameterType, Annotation[] annotations);
 
-	default void processParameter(String parameterName, Object arg, Class<?> parameterType, MapSqlParameterSource ps, NamedParameterJdbcTemplate jdbc) {
-		processParameter(parameterName, arg, parameterType, ps);
+	default void processParameter(ProcessParameterContext processParameterContext) {
+		processParameter(processParameterContext.parameterName, processParameterContext.arg, processParameterContext.parameterType, processParameterContext.ps);
 	}
 
 	void processParameter(String parameterName, Object arg, Class<?> parameterType, MapSqlParameterSource ps);
 	
 	int order();
+
+	class ProcessParameterContext {
+		private final NamedParameterJdbcTemplate jdbc;
+		private final String parameterName;
+		private final Class<?> parameterType;
+		private final Annotation[] parameterAnnotations;
+		private final Object arg;
+		private final MapSqlParameterSource ps;
+
+		public ProcessParameterContext(NamedParameterJdbcTemplate jdbc, String parameterName, Object arg, Class<?> parameterType, Annotation[] parameterAnnotations, MapSqlParameterSource ps) {
+			this.jdbc = jdbc;
+			this.parameterName = parameterName;
+			this.arg = arg;
+			this.parameterType = parameterType;
+			this.parameterAnnotations = parameterAnnotations;
+			this.ps = ps;
+		}
+
+		public NamedParameterJdbcTemplate getJdbc() {
+			return jdbc;
+		}
+
+		public Connection getConnection() {
+			return DataSourceUtils.getConnection(jdbc.getJdbcTemplate().getDataSource());
+		}
+
+		public Class<?> getParameterType() {
+			return parameterType;
+		}
+
+		public Annotation[] getParameterAnnotations() {
+			return parameterAnnotations;
+		}
+
+		public Object getArg() {
+			return arg;
+		}
+
+		public String getParameterName() {
+			return parameterName;
+		}
+
+		public MapSqlParameterSource getParameterSource() {
+			return ps;
+		}
+	}
 }

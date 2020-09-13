@@ -275,7 +275,7 @@ public enum QueryType {
 				for (ParameterConverter parameterConverter : parameterConverters) {
 					if (parameterConverter.accept(parameterType, parameterAnnotations[i])) {
 						hasAccepted = true;
-						parameterConverter.processParameter(name, arg, parameterType, ps, jdbc);
+						parameterConverter.processParameter(new ParameterConverter.ProcessParameterContext(jdbc, name, arg, parameterType, parameterAnnotations[i], ps));
 						break;
 					}
 				}
